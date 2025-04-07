@@ -4,7 +4,7 @@ import menuItems, { categoryOrder, MenuItem } from '../../data/menuData';
 import { useOrders, OrderItem } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import FloatingCart from '../../components/FloatingCart/FloatingCart';
-import { Toast } from '../../components/Toast/Toast'; // Giả định component này tồn tại
+import { Toast } from '../../components/Toast/Toast';
 import './QrOrdering.scss';
 
 // Constants

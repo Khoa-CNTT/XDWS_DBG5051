@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './Menu.scss';
 
-// Define menu item type
 type MenuItem = {
   id: string | number;
   name: string;
@@ -15,7 +14,6 @@ type MenuItem = {
 };
 
 const Menu = () => {
-  // Thêm state để lưu trữ dữ liệu từ API
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -156,8 +154,7 @@ const Menu = () => {
     setSearchKeyword('');
     setIsSearching(false);
     setSearchPerformed(false);
-    
-    // Restore original category view
+
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
     } else {
@@ -165,17 +162,14 @@ const Menu = () => {
     }
   };
   
-  // Handle price filter submission
   const handlePriceFilter = (e: React.FormEvent) => {
     e.preventDefault();
     setPriceFilterError('');
-    
-    // Clear search if active
+
     if (isSearching) {
       clearSearch();
     }
-    
-    // Validate inputs
+
     const minPriceNum = minPrice ? parseInt(minPrice, 10) : 0;
     const maxPriceNum = maxPrice ? parseInt(maxPrice, 10) : Number.MAX_SAFE_INTEGER;
     
@@ -202,8 +196,7 @@ const Menu = () => {
       setPriceFilterError('Đã xảy ra lỗi khi lọc giá. Vui lòng thử lại sau.');
     }
   };
-  
-  // Clear price filter
+
   const clearPriceFilter = () => {
     setMinPrice('');
     setMaxPrice('');
@@ -211,7 +204,6 @@ const Menu = () => {
     setPriceFilterPerformed(false);
     setPriceFilterError('');
     
-    // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
     } else {
@@ -219,7 +211,6 @@ const Menu = () => {
     }
   };
   
-  // Handle category click while filtering
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
     if (isSearching) {

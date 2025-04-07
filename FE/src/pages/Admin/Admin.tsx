@@ -14,7 +14,6 @@ const Admin = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simple authentication (in a real app, this would use a secure API)
     if (username === 'admin' && password === 'admin123') {
       setIsAuthenticated(true);
       setError('');
