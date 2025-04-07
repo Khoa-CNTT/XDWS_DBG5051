@@ -1,0 +1,147 @@
+.booking-page {
+    .booking-header {
+        background-color: #000;
+        color: #fff;
+        padding: 50px 0;
+        background-image: url("https://ext.same-assets.com/2845702300/157117669.png");
+        background-size: cover;
+        background-position: center;
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 16px;
+            max-width: 800px;
+        }
+    }
+
+    .booking-content {
+        padding: 60px 0;
+
+        .booking-form {
+            max-width: 900px;
+            margin: 0 auto;
+
+            .form-section {
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                margin-bottom: 30px;
+
+                h2 {
+                    font-size: 24px;
+                    font-weight: 600;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+
+                .form-row {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+
+                .form-group {
+                    margin-bottom: 20px;
+                    position: relative;
+
+                    label {
+                        display: block;
+                        margin-bottom: 8px;
+                        font-weight: 500;
+
+                        .required {
+                            color: #ff4d4f;
+                            margin-left: 2px;
+                        }
+                    }
+
+                    input,
+                    select,
+                    textarea {
+                        width: 100%;
+                        padding: 12px 15px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 4px;
+                        font-size: 16px;
+                        transition: border-color 0.3s;
+
+                        &:focus {
+                            border-color: #f08404;
+                            outline: none;
+                        }
+
+                        &.error {
+                            border-color: #ff4d4f;
+                        }
+                    }
+
+                    .error-message {
+                        color: #ff4d4f;
+                        font-size: 14px;
+                        margin-top: 5px;
+                    }
+
+                    textarea {
+                        resize: vertical;
+                        min-height: 100px;
+                    }
+                }
+
+                .checkboxes {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin-bottom: 25px;
+
+                    .checkbox-group {
+                        display: flex;
+                        align-items: center;
+
+                        input[type="checkbox"] {
+                            width: 18px;
+                            height: 18px;
+                            margin-right: 10px;
+                            accent-color: #f08404;
+                        }
+
+                        label {
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+                .form-policy {
+                    margin-bottom: 25px;
+                    font-size: 14px;
+                    color: #666;
+                }
+
+                .booking-submit-btn {
+                    display: block;
+                    width: 100%;
+                    padding: 15px;
+                    background-color: #f08404;
+                    color: #fff;
+                    font-size: 18px;
+                    font-weight: 600;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+
+                    &:hover {
+                        background-color: darken(#f08404, 10%);
+                    }
+                }
+            }
+        }
+    }
+}
