@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
-import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaTable } from 'react-icons/fa';
+import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaTable, FaPeopleCarry } from 'react-icons/fa';
 import Menu from '../../components/Manage/Menu/Menu.tsx';
-import { FaTableCells } from 'react-icons/fa6';
+import { FaPeopleGroup, FaPeopleLine, FaStaffSnake, FaTableCells } from 'react-icons/fa6';
 import Table from '../../components/Manage/Table/Table.tsx'
-
+import Staff from '../../components/Manage/Staff/Staff.tsx'
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -134,6 +134,14 @@ const Admin = () => {
             <FaTableCells size={20} />
             {!isSidebarCollapsed && <span>Quản Lý Bàn</span>}
           </div>
+
+          <div
+            className={`sidebar-menu-item ${activeTab === 'staff' ? 'active' : ''}`}
+            onClick={() => setActiveTab('staff')}
+          >
+            <FaPeopleGroup size={20} />
+            {!isSidebarCollapsed && <span>Quản Lý Nhân Viên</span>}
+          </div>
         </div>
 
         <div className="sidebar-footer">
@@ -156,6 +164,8 @@ const Admin = () => {
             {activeTab === 'menu' && 'Quản lý thực đơn'}
             {activeTab === 'stats' && 'Thống kê'}
             {activeTab === 'table' && 'Quản Lý Bàn'}
+            {activeTab === 'staff' && 'Quản Lý Nhân Viên'}
+
           </h1>
           <div className="admin-info">
             <span className="admin-name">Admin</span>
@@ -169,6 +179,7 @@ const Admin = () => {
           {activeTab === 'menu' && <div><Menu /></div>}
           {activeTab === 'stats' && <div className="placeholder-content">Tính năng đang phát triển</div>}
           {activeTab === 'table' && <div><Table /></div>}
+          {activeTab === 'staff' && <div><Staff /></div>}
 
         </div>
       </div>

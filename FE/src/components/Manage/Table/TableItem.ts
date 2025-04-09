@@ -10,18 +10,18 @@ export interface TableItem {
     status: StatusType;
 }
 
-// Thêm kiểu mới để xử lý form, cho phép id optional
-export interface TableFormData {
-    id?: number;
-    number: number;
-    position: string;
-    quantity: number;
-    status: StatusType;
-}
+
+// export interface TableFormData {
+//     id?: number;
+//     number: number;
+//     position: string;
+//     quantity: number;
+//     status: StatusType;
+// }
 
 
 
-export const TableData: TableItem[] = [
+export const tableItem: TableItem[] = [
     {
         id: 1,
         number: 1,

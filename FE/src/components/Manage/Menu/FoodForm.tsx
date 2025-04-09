@@ -17,6 +17,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
     const [category, setCategory] = useState(food?.type || "Khai vị");
     const [image, setImage] = useState(food?.image || "");
     const [status, setStatus] = useState<StatusTypeFood>(food?.status || 'Còn');
+
     useEffect(() => {
         if (food?.image) {
             setShowImage(food.image);

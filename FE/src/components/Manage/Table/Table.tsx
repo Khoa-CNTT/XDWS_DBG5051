@@ -1,4 +1,4 @@
-import { TableData, TableFormData, TableItem } from "./TableItem"
+import { tableItem, TableItem } from "./TableItem"
 import { useState } from 'react'
 import FormTable from './FormTable'
 import './Table.scss'
@@ -13,10 +13,10 @@ const Table = () => {
     ]
 
     const [showForm, setShowForm] = useState(false)
-    const [tables, setTables] = useState<TableItem[]>(TableData)
+    const [tables, setTables] = useState<TableItem[]>(tableItem)
     const [initTables, setInitTables] = useState<TableItem | null>(null);
 
-    const handleSaveTable = (table: TableFormData) => {
+    const handleSaveTable = (table: TableItem) => {
         if (initTables) {
             setTables(tables.map((item) => (item.id === table.id ? table as TableItem : item)));
         } else {

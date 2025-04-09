@@ -3,7 +3,7 @@ import './Menu.scss'
 import { FoodItem, foodItem } from './foodItem'
 import FoodForm from './FoodForm'
 
-function MenuManage() {
+const MenuManage = () => {
     const headers = ['Ảnh', 'Tên', 'Giá', 'Trạng Thái', 'Danh Mục', 'Hành Động']
 
     const [showAddForm, setShowAddForm] = useState(false)
