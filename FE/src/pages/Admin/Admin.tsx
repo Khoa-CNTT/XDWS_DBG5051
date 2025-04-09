@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
-import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaTable } from 'react-icons/fa';
+import Menu from '../../components/Manage/Menu/Menu.tsx';
+import { FaTableCells } from 'react-icons/fa6';
+import Table from '../../components/Manage/Table/Table.tsx'
+
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,7 +18,7 @@ const Admin = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (username === 'admin' && password === 'admin123') {
+    if (username === '1' && password === '1') {
       setIsAuthenticated(true);
       setError('');
     } else {
@@ -75,10 +79,10 @@ const Admin = () => {
     <div className="admin-dashboard">
       <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <img 
-            src="https://ext.same-assets.com/0/1160240166.svg" 
-            alt="Smart Order" 
-            className="logo" 
+          <img
+            src="https://ext.same-assets.com/0/1160240166.svg"
+            alt="Smart Order"
+            className="logo"
           />
           {!isSidebarCollapsed && <h2>Smart Order</h2>}
           <button className="toggle-sidebar-btn" onClick={toggleSidebar}>
@@ -87,45 +91,53 @@ const Admin = () => {
         </div>
 
         <div className="sidebar-menu">
-          <div 
+          <div
             className={`sidebar-menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             <FaHome size={20} />
             {!isSidebarCollapsed && <span>Tổng quan</span>}
           </div>
-          <div 
+          <div
             className={`sidebar-menu-item ${activeTab === 'qrcode' ? 'active' : ''}`}
             onClick={() => setActiveTab('qrcode')}
           >
             <FaQrcode size={20} />
             {!isSidebarCollapsed && <span>Mã QR đặt món</span>}
           </div>
-          <div 
+          <div
             className={`sidebar-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
             <FaClipboardList size={20} />
             {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
           </div>
-          <div 
+          <div
             className={`sidebar-menu-item ${activeTab === 'menu' ? 'active' : ''}`}
             onClick={() => setActiveTab('menu')}
           >
             <FaBars size={20} />
             {!isSidebarCollapsed && <span>Quản lý thực đơn</span>}
           </div>
-          <div 
+          <div
             className={`sidebar-menu-item ${activeTab === 'stats' ? 'active' : ''}`}
             onClick={() => setActiveTab('stats')}
           >
             <FaChartBar size={20} />
             {!isSidebarCollapsed && <span>Thống kê</span>}
           </div>
+
+          <div
+            className={`sidebar-menu-item ${activeTab === 'table' ? 'active' : ''}`}
+            onClick={() => setActiveTab('table')}
+          >
+            <FaTableCells size={20} />
+            {!isSidebarCollapsed && <span>Quản Lý Bàn</span>}
+          </div>
         </div>
 
         <div className="sidebar-footer">
-          <div 
+          <div
             className="sidebar-menu-item logout"
             onClick={() => setIsAuthenticated(false)}
           >
@@ -143,6 +155,7 @@ const Admin = () => {
             {activeTab === 'orders' && 'Quản lý đơn hàng'}
             {activeTab === 'menu' && 'Quản lý thực đơn'}
             {activeTab === 'stats' && 'Thống kê'}
+            {activeTab === 'table' && 'Quản Lý Bàn'}
           </h1>
           <div className="admin-info">
             <span className="admin-name">Admin</span>
@@ -153,8 +166,10 @@ const Admin = () => {
           {activeTab === 'qrcode' && <QrCodeGenerator />}
           {activeTab === 'dashboard' && <div className="placeholder-content">Tính năng đang phát triển</div>}
           {activeTab === 'orders' && <div className="placeholder-content">Tính năng đang phát triển</div>}
-          {activeTab === 'menu' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'menu' && <div><Menu /></div>}
           {activeTab === 'stats' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'table' && <div><Table /></div>}
+
         </div>
       </div>
     </div>

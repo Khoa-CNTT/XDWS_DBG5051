@@ -1,0 +1,134 @@
+.Table-Manage {
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    padding: 40px;
+    text-align: center;
+    color: var(--gray-text, #666);
+    font-size: 18px;
+    box-shadow: var(--box-shadow);
+
+    .Head {
+
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 20px;
+        // background-color: red;
+
+
+        .add-btn {
+
+            padding: 10px 20px;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            top: 20px;
+            right: 10px;
+
+
+
+            &:hover {
+                background-color: #16a085;
+            }
+        }
+    }
+
+    .Table-body {
+        overflow-y: auto;
+        max-height: 73vh;
+        // border-bottom: 1px solid;
+        height: fit-content;
+
+        box-shadow: var(--box-shadow);
+
+        .Table-Table {
+
+            width: 100%;
+            border-collapse: collapse;
+
+            // margin-top: 20px;
+            // background-color: rgb(219, 146, 146);
+            .table-head {
+
+                background-color: #b5c0be;
+                color: rgb(3, 3, 3);
+                margin: 0 10px;
+                // border-radius: 4px 4px 0 0;
+                height: 50px;
+                // position: fixed;
+                top: 10px;
+                border-bottom: 1px solid;
+                width: 100%;
+
+
+
+
+            }
+
+            .table-body {
+                border-collapse: collapse;
+                margin-top: 20px;
+
+                .table-row {
+                    border-bottom: 1px solid;
+                    align-self: center;
+                    height: 100px;
+                    display: table-row;
+
+                    &:hover {
+                        transform: translateY(-3px);
+
+                    }
+
+                    .table-number {}
+
+                    .table-position {}
+
+                    .table-quantity {}
+
+                    .table-status {}
+
+                    .btn-edit,
+                    .btn-delete {
+                        font-weight: bold;
+                        padding: 10px;
+                        margin: 1px;
+                        border-radius: 10px;
+                        transition: background 0.3s ease;
+                        color: white;
+
+                        &:hover {
+                            transform: translateY(-3px);
+
+                        }
+                    }
+
+                    .btn-edit {
+                        background-color: #1abc9c;
+
+                        margin-right: 10px;
+
+
+                        &:hover {
+                            background-color: #16a085;
+                        }
+                    }
+
+                    .btn-delete {
+                        background-color: #da2912;
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+td,
+th {
+    text-align: center;
+}
