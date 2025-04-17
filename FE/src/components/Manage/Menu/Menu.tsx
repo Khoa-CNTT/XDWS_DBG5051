@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './Menu.scss'
 import { FoodItem, foodItem } from './foodItem'
 import FoodForm from './FoodForm'
+import axios from 'axios'
 
 const MenuManage = () => {
     const headers = ['Ảnh', 'Tên', 'Giá', 'Trạng Thái', 'Danh Mục', 'Hành Động']
@@ -27,7 +28,14 @@ const MenuManage = () => {
             setFoods(updatedFoods)
         }
     }
-
+    axios.get('http://127.0.0.1:8000/api/list_menu')
+    .then(res =>{
+        console.log('Laays thanh cong', res.data);
+    })
+    .catch(err =>{
+        console.log("that bai");
+        
+    })
     const handleEdit = (food: FoodItem) => {
         setInitFoods(food);
         setShowAddForm(true);

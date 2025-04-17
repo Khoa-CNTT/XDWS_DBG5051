@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './Menu.scss';
 
+// Define menu item type
 type MenuItem = {
+  category_id: any;
   id: string | number;
   name: string;
   description: string;
@@ -14,12 +16,13 @@ type MenuItem = {
 };
 
 const Menu = () => {
+  // Thêm state để lưu trữ dữ liệu từ API
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('popular');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   
   // Search state
@@ -40,31 +43,39 @@ const Menu = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:8000/api/products');
-        
-        // Kiểm tra và đảm bảo response.data là một mảng
-        if (Array.isArray(response.data)) {
-          // Ép kiểu dữ liệu từ API thành MenuItem[]
-          const typedData = response.data as MenuItem[];
-          setMenuItems(typedData);
-          
-          // Extract unique categories và đảm bảo là string[]
-          const categories = [...new Set(typedData.map(item => item.category))];
-          setCategoryOrder(categories);
-        } else {
+  
+        // Gọi cả hai API cùng lúc
+        const [menuResponse, categoryResponse] = await Promise.all([
+          axios.get('http://127.0.0.1:8000/api/list_menu'),
+          axios.get('http://127.0.0.1:8000/api/cate')
+        ]);
+  
+  
+        // Lấy dữ liệu từ API (kiểm tra xem có phải mảng không)
+        const menuData = menuResponse.data.data;
+        const categoryData = categoryResponse.data.data;
+  
+        if (!Array.isArray(menuData) || !Array.isArray(categoryData)) {
           throw new Error('Dữ liệu API không đúng định dạng');
         }
-        
+  
+        // Cập nhật danh sách món ăn
+        setMenuItems(menuData);
+  
+        // Cập nhật danh mục (lấy từ API danh mục thay vì từ danh sách món)
+        setCategoryOrder(categoryData.map(category => category.name));
+  
         setLoading(false);
       } catch (err) {
         setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
         setLoading(false);
-        console.error('Error fetching menu data:', err);
+        console.error('Lỗi khi gọi API:', err);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   // Helper functions using the state instead of imported data
   const groupMenuItemsByCategory = () => {
@@ -154,7 +165,8 @@ const Menu = () => {
     setSearchKeyword('');
     setIsSearching(false);
     setSearchPerformed(false);
-
+    
+    // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
     } else {
@@ -162,14 +174,17 @@ const Menu = () => {
     }
   };
   
+  // Handle price filter submission
   const handlePriceFilter = (e: React.FormEvent) => {
     e.preventDefault();
     setPriceFilterError('');
-
+    
+    // Clear search if active
     if (isSearching) {
       clearSearch();
     }
-
+    
+    // Validate inputs
     const minPriceNum = minPrice ? parseInt(minPrice, 10) : 0;
     const maxPriceNum = maxPrice ? parseInt(maxPrice, 10) : Number.MAX_SAFE_INTEGER;
     
@@ -196,7 +211,8 @@ const Menu = () => {
       setPriceFilterError('Đã xảy ra lỗi khi lọc giá. Vui lòng thử lại sau.');
     }
   };
-
+  
+  // Clear price filter
   const clearPriceFilter = () => {
     setMinPrice('');
     setMaxPrice('');
@@ -204,6 +220,7 @@ const Menu = () => {
     setPriceFilterPerformed(false);
     setPriceFilterError('');
     
+    // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
     } else {
@@ -211,6 +228,7 @@ const Menu = () => {
     }
   };
   
+  // Handle category click while filtering
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
     if (isSearching) {
