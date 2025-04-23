@@ -1,1 +1,0 @@
-export const Category = ['Khai Vị', 'Thị heo', 'Thịt bò', 'Thị gà']

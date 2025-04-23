@@ -11,14 +11,6 @@ export interface TableItem {
 }
 
 
-// export interface TableFormData {
-//     id?: number;
-//     number: number;
-//     position: string;
-//     quantity: number;
-//     status: StatusType;
-// }
-
 
 
 export const tableItem: TableItem[] = [

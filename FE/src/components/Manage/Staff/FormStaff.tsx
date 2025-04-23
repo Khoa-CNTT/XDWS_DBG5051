@@ -1,6 +1,6 @@
 import { PositionStaffType, StaffList, staffList, StatusStaffType } from "./StaffList";
 import React, { useState, useEffect } from "react";
-import { Category } from '../Category/Category'
+// import { Category } from '../Category/Category'
 import './FormStaff.scss'
 interface AddFormProps {
     onsave: (staff: StaffList) => void;

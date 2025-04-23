@@ -1,10 +1,10 @@
-import { TableFormData, StatusType } from "./TableItem"
+import { tableItem, TableItem, StatusType } from "./TableItem"
 import React, { useState } from "react";
 
-import './FormTable.scss'
+// import './FormTable.scss'
 interface AddTableFormProps {
-    onsave: (table: TableFormData) => void;
-    table: TableFormData | null;
+    onsave: (table: TableItem) => void;
+    table: TableItem | null;
     closeForm: () => void;
 }
 
