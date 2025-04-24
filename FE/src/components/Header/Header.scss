@@ -27,11 +27,15 @@
         align-items: center;
 
         img {
-            height: 40px;
+            height: 50px;
+            width: auto;
+            border-radius: 50px;
             transition: transform 0.3s ease;
+            object-fit: contain;
 
             &:hover {
                 transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(240, 132, 4, 0.3);
             }
         }
     }
@@ -148,56 +152,4 @@
             }
         }
     }
-
-    // .user-actions {
-    //     display: flex;
-    //     align-items: center;
-
-    //     .login-btn {
-    //         padding: 8px 20px;
-    //         background-color: var(--primary-color);
-    //         color: #fff;
-    //         border-radius: var(--border-radius-sm);
-    //         font-weight: 500;
-    //         transition: all 0.3s ease;
-
-    //         &:hover {
-    //             background-color: darken(#f08404, 10%);
-    //         }
-    //     }
-
-    //     .user-menu {
-    //         display: flex;
-    //         align-items: center;
-    //         gap: 15px;
-
-    //         .user-profile {
-    //             display: flex;
-    //             align-items: center;
-
-    //             .user-name {
-    //                 font-weight: 500;
-    //                 transition: color 0.3s ease;
-
-    //                 &:hover {
-    //                     color: var(--primary-color);
-    //                 }
-    //             }
-    //         }
-
-    //         .logout-btn {
-    //             padding: 6px 15px;
-    //             border: 1px solid var(--primary-color);
-    //             color: var(--primary-color);
-    //             border-radius: var(--border-radius-sm);
-    //             font-weight: 500;
-    //             transition: all 0.3s ease;
-
-    //             &:hover {
-    //                 background-color: var(--primary-color);
-    //                 color: #fff;
-    //             }
-    //         }
-    //     }
-    // }
 }

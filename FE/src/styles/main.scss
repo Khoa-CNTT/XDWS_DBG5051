@@ -4,6 +4,8 @@
 @import "../components/QrCodeGenerator/QrCodeGenerator.scss";
 @import "../components/Pricing/Pricing.scss";
 @import "../components/FloatingCart/FloatingCart.scss";
+@import "../components/Manage/Payment/Payment.scss";
+
 @import "../pages/Home/Home.scss";
 @import "../pages/Menu/Menu.scss";
 @import "../pages/Booking/Booking.scss";
@@ -15,7 +17,6 @@
 
 // Import fonts
 @import "./fonts.scss";
-
 // Variables
 :root {
     // Colors

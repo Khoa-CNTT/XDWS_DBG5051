@@ -7,9 +7,6 @@ import FloatingCart from '../../components/FloatingCart/FloatingCart';
 import { Toast } from '../../components/Toast/Toast';
 import './QrOrdering.scss';
 
-// Constants
-const LOGO_URL = "https://ext.same-assets.com/0/1160240166.svg";
-
 const QrOrdering = () => {
   // Use proper type for useParams
   const { tableId } = useParams<{ tableId?: string }>();
@@ -292,11 +289,7 @@ const QrOrdering = () => {
       <div className="qr-header">
         <div className="container">
           {/* Use constant instead of process.env */}
-          <img 
-            src={LOGO_URL} 
-            alt="Smart Order" 
-            className="logo" 
-          />
+          <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
           <h1>Đặt món trực tiếp</h1>
           <p>Bàn số: {tableId}</p>
         </div>

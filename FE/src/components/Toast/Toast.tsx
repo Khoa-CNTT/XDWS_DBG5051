@@ -3,34 +3,41 @@ import './Toast.scss';
 
 interface ToastProps {
   message: string;
-  duration?: number;
   type?: 'success' | 'error' | 'info' | 'warning';
+  duration?: number;
   onClose: () => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({
-  message,
-  duration = 3000,
-  type = 'success',
-  onClose
-}) => {
+export const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 3000, onClose }) => {
   useEffect(() => {
-    // Automatically close the toast after specified duration
     const timer = setTimeout(() => {
       onClose();
     }, duration);
-
-    // Clean up the timer when component unmounts
+    
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
+  const renderIcon = () => {
+    switch (type) {
+      case 'success':
+        return '✓';
+      case 'error':
+        return '⚠';
+      case 'info':
+        return 'ℹ';
+      case 'warning':
+        return '!';
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className={`toast-container ${type}`}>
+    <div className={`toast ${type}`}>
       <div className="toast-content">
-        <div className="toast-message">{message}</div>
-        <button className="toast-close" onClick={onClose}>
-          &times;
-        </button>
+        <span className="toast-icon">{renderIcon()}</span>
+        <span className="toast-message">{message}</span>
+        <button className="toast-close" onClick={onClose}>×</button>
       </div>
     </div>
   );

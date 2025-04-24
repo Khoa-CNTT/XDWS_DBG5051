@@ -17,7 +17,6 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    // Đóng menu khi chuyển trang
     setIsMenuOpen(false);
   }, [location]);
 
@@ -26,7 +25,7 @@ const Header = () => {
       <div className="container">
         <div className="header-content">
           <Link to="/" className="logo">
-            <img src="https://ext.same-assets.com/0/1160240166.svg" alt="Smart Order" />
+            <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo-text" /> 
           </Link>
 
           <div

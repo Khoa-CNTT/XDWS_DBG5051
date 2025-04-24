@@ -11,25 +11,20 @@ const FloatingCart = ({ itemCount, onCartClick }: FloatingCartProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const prevItemCountRef = useRef(itemCount);
 
-  // Show the cart when items are added
   useEffect(() => {
-    // Only set visibility when itemCount changes from 0 to a positive number
     if (itemCount > 0 && !isVisible) {
       setIsVisible(true);
     }
 
-    // Only animate when itemCount increases
     if (itemCount > prevItemCountRef.current) {
       setIsAnimating(true);
       const timer = setTimeout(() => {
         setIsAnimating(false);
       }, 500);
 
-      // Clean up timer
       return () => clearTimeout(timer);
     }
 
-    // Update previous count using ref
     prevItemCountRef.current = itemCount;
   }, [itemCount, isVisible]);
 

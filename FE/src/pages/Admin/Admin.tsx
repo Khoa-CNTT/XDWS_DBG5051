@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
-import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaTable, FaPeopleCarry } from 'react-icons/fa';
+import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt,} from 'react-icons/fa';
 import Menu from '../../components/Manage/Menu/Menu.tsx';
-import { FaPeopleGroup, FaPeopleLine, FaStaffSnake, FaTableCells } from 'react-icons/fa6';
+import { FaPeopleGroup, FaTableCells } from 'react-icons/fa6';
 import Table from '../../components/Manage/Table/Table.tsx'
 import Staff from '../../components/Manage/Staff/Staff.tsx'
-import axios from 'axios';
-import { CategoryList } from '../../components/Manage/Category/Category.tsx';
 import Category from '../../components/Manage/Category/Category.tsx';
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,7 +49,7 @@ const Admin = () => {
         <div className="container">
           <div className="login-box">
             <div className="login-header">
-              <img src="https://ext.same-assets.com/0/1160240166.svg" alt="Smart Order" className="logo" />
+              <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
               <h1>Đăng nhập quản trị</h1>
             </div>
 
@@ -94,11 +92,7 @@ const Admin = () => {
     <div className="admin-dashboard">
       <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <img
-            src="https://ext.same-assets.com/0/1160240166.svg"
-            alt="Smart Order"
-            className="logo"
-          />
+          <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
           {!isSidebarCollapsed && <h2>Smart Order</h2>}
           <button className="toggle-sidebar-btn" onClick={toggleSidebar}>
             <FaBars size={20} />
