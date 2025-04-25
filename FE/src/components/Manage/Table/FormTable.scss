@@ -1,0 +1,97 @@
+.edit-food-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 16px;
+    width: 400px;
+    max-width: 95%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: auto;
+
+    .form-title {
+        text-align: center;
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 18px;
+
+
+        .image-box {
+            display: flex;
+            align-content: center;
+
+            .image-preview {
+
+                margin-top: 10px;
+                max-width: 70px;
+                height: 70px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+
+            }
+
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: 0.3s;
+
+            &:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+            }
+        }
+    }
+}
+
+
+
+.form-group-button {
+    display: flex;
+    padding-top: 20px;
+    // margin-bottom: 18px;
+
+    button {
+
+        border: 1px solid;
+        // padding: 10px;
+        // margin-right: 10px;
+        border-radius: 10px;
+        width: 70px;
+
+
+        &.btn-save {
+            background-color: #28a745;
+            flex: 1;
+
+            &:hover {
+                background-color: #208537;
+            }
+        }
+
+        &.btn-exit {
+            background-color: #dc3545;
+            color: white;
+            flex: 1;
+
+            &:hover {
+                background-color: #bd2130;
+            }
+        }
+    }
+}
