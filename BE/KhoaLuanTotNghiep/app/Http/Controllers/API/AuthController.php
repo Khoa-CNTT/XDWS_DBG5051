@@ -67,9 +67,11 @@ class AuthController extends Controller
 
         if(Auth::attempt($credentials)) {
             $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'message' => 'Đăng nhập thành công', 
-                'user' => $user
+                'user' => $user,
+                'token' => $token  // ⚠️ Trả về token tại đây
             ], 200);
         }
     
