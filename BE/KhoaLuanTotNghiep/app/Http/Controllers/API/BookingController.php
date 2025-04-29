@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BookingRequest;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Notification;
 class BookingController extends Controller
 {
     public function index()
@@ -24,17 +24,9 @@ class BookingController extends Controller
 
     public function store(BookingRequest $request)
     {
-       dd($request->all());
-        $data = $request->only([
-            'customer_name',
-            'email',
-            'phone',
-            'guests',
-            'booking_date',
-            'booking_time',
-            'note',
-            'status' 
-        ]);
+
+        $data = $request->all();
+        // dd($data);
         $booking = Booking::create($data);
 
         return response()->json([
@@ -44,19 +36,20 @@ class BookingController extends Controller
         ], 201);
     }
 
-    public function update(BookingRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $booking = Booking::find($id);
-
         if (!$booking) {
             return response()->json([
                 'success' => false,
                 'message' => 'Không tìm thấy đơn đặt bàn.'
             ], 404);
         }
-
+        $data = $request->only([
+            'status',
+        ]);
         // Cập nhật dữ liệu từ request
-        $booking->update($request->validated());
+        $booking->update($data);
 
         // Nếu có thay đổi status thì xử lý gửi thông báo
         if ($request->has('status')) {

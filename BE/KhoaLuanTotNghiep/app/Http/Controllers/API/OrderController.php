@@ -14,7 +14,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $order = Order::with('items.menu')->get();
+        $order = Order::with('items.menu', 'table')->get(); // thêm 'table'
         if ($order) {
             return response()->json([
                 'data' => $order,
@@ -72,7 +72,7 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = Order::with('items.menu')->find($id);
+        $order = Order::with('items.menu', 'table')->find($id);
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);

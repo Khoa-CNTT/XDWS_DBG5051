@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookingController;
+use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CateController;
 use App\Http\Controllers\API\MenuController;
 use App\Http\Controllers\API\OrderController;
@@ -37,41 +38,42 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [ReportController::class, 'getChartData']);
         // Tai Khoan
-        Route::get('/list-user', [AuthController::class, 'index']);
+        Route::get('/admin/list-user', [AuthController::class, 'index']);
         //add
-        Route::post('/add-user', [AuthController::class, 'register']);
+        Route::post('/admin/add-user', [AuthController::class, 'register']);
         //delete
-        Route::delete('/user/{id}', [AuthController::class, 'destroy']);
+        Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
 
         // Quan ly ban
         // ban
         Route::get('/table', [TableController::class, 'index']);
-        
+        // add
+        Route::post('/admin/add-table', [TableController::class, 'store']);
         // update
-        Route::put('/update-table/{id}', [TableController::class, 'update']);
+        Route::put('/admin/update-table/{id}', [TableController::class, 'update']);
         // delete
-        Route::delete('/table/{id}', [TableController::class, 'destroy']);
+        Route::delete('/admin/table/{id}', [TableController::class, 'destroy']);
 
         //Danh muc
         // add
-        
+        Route::post('/admin/add-cate', [CateController::class, 'store']);
         // update
-        Route::put('/update-cate/{id}', [CateController::class, 'update']);
+        Route::put('/admin/update-cate/{id}', [CateController::class, 'update']);
         // delete
-        Route::delete('/delete-cate/{id}', [CateController::class, 'destroy']);
+        Route::delete('/admin/delete-cate/{id}', [CateController::class, 'destroy']);
 
         //Menu
         // add
-        Route::post('/add-menu', [MenuController::class, 'store']);
+        Route::post('/admin/add-menu', [MenuController::class, 'store']);
         // update
-        Route::put('/update-menu/{id}', [MenuController::class, 'update']);
+        Route::put('/admin/update-menu/{id}', [MenuController::class, 'update']);
         // delete
-        Route::delete('/cate/{id}', [MenuController::class, 'destroy']);
+        Route::delete('/admin/cate/{id}', [MenuController::class, 'destroy']);
 
         //Quan ly Dat ban
-        Route::get('/list-booking', [BookingController::class, 'index']);
+        Route::get('/admin/list-booking', [BookingController::class, 'index']);
         //câp nhật đơn đặt bàn
-        Route::put('/update-booking/{id}', [BookingController::class, 'update']);
+        
     });
 
     // 🔹 Chỉ staff mới có quyền vào route này
@@ -79,10 +81,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/staff/dashboard', function () {
             return response()->json(['message' => 'Chào mừng Staff!']);
         });
+        // Các API khác cần đăng nhập mới được dùng
+        Route::post('/logout', [AuthController::class, 'logout']);
         // Đơn hàng chi tiết
-        Route::get('/order-item/{id}', [OrderController::class, 'show']);
+        Route::get('/staff/order-item/{id}', [OrderController::class, 'show']);
         // Bàn
         Route::get('/table', [TableController::class, 'index']);
+
     });
 });
 
@@ -95,12 +100,25 @@ Route::get('/list-menu', [MenuController::class, 'index']);
 
 // Đơn hàng
 Route::get('/order', [OrderController::class, 'index']);
+//đặt món
+Route::post('/orders/place', [OrderController::class, 'placeOrder']);
 
 //AI gợi ý món ăn
 Route::get('/popular-dishes', [MenuController::class, 'getPopularMenus']);
 
 //Dat ban
-Route::post('/table-booking', [BookingController::class, 'store']);
-Route::post('/add-cate', [CateController::class, 'store']);
-// add
-Route::post('/add-table', [TableController::class, 'store']);
+Route::post('/booking', [BookingController::class, 'store']);
+
+// Lấy danh sách giỏ hàng
+Route::get('/cart', [CartController::class, 'index']);
+
+// Tăng số lượng sản phẩm trong giỏ
+Route::post('/cart/up', [CartController::class, 'upQtyCart']);
+
+// Giảm số lượng sản phẩm trong giỏ
+Route::post('/cart/down', [CartController::class, 'downQtyCart']);
+
+// Xóa sản phẩm khỏi giỏ
+Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
+
+Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);

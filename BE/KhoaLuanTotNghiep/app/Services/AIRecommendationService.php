@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Menu;
-use App\Models\OrderItem;
 
 class AIRecommendationService
 {
@@ -15,11 +14,8 @@ class AIRecommendationService
      */
     public function getRecommendedDishes(int $limit = 5)
     {
-        return Menu::select('menus.*')
-            ->withCount(['orderItems as total_orders' => function ($query) {
-                $query->select(\DB::raw("count(*)"));
-            }])
-            ->orderByDesc('total_orders')
+        return Menu::withCount('orderItems')  // Sử dụng 'orderItems' thay vì truy vấn trực tiếp
+            ->orderByDesc('order_items_count')  // 'order_items_count' là tên mặc định của cột đếm trong withCount
             ->take($limit)
             ->get();
     }
