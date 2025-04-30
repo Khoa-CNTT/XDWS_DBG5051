@@ -14,7 +14,7 @@ const MenuManage = () => {
     const [initMenus, setInitMenus] = useState<FoodItem | null>(null)
     const [categories, setCategories] = useState<CategoryType[]>([])
     const [refresh, setRefresh] = useState(false)
-
+    const token = localStorage.getItem('token');
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -31,7 +31,7 @@ const MenuManage = () => {
     useEffect(() => {
         const fetchMenus = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/api/list_menu');
+                const res = await axios.get('http://localhost:8000/api/list-menu');
                 setMenus(res.data.data);
                 console.log('Lấy data thành công', res.data.data.map((item: FoodItem) => item));
             } catch (error) {
@@ -52,11 +52,17 @@ const MenuManage = () => {
         try {
             if (initMenus) {
                 // Gọi API cập nhật món ăn
-                const res = await axios.put(`http://localhost:8000/api/admin/update_menu/${food.id}`, food);
+                const res = await axios.put(`http://localhost:8000/api/admin/update-menu/${food.id}`, food,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
                 console.log('Cập nhật món ăn thành công:', res.data);
             } else {
                 // Gọi API thêm món ăn
-                const res = await axios.post(`http://localhost:8000/api/admin/add_menu`, food);
+                const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, food);
                 console.log('Thêm món ăn thành công:', res.data);
             }
 
@@ -128,9 +134,9 @@ const MenuManage = () => {
 
                                         <td className="food-name">{food?.name}</td>
                                         <td className="food-price">{food?.price?.toLocaleString()} VNĐ</td>
-                                        <td className="food-status">
+                                        {/* <td className="food-status">
                                             {food?.status ? 'Còn' : 'Hết'}
-                                        </td>
+                                        </td> */}
                                         <td className="food-type">
                                             {categories.find((category) => category.id === food?.category_id)?.name}
                                         </td>

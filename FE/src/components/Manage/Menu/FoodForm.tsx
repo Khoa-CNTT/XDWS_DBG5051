@@ -20,7 +20,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
     const [categoryName, setCategoryName] = useState<CategoryType[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<number>(food?.category_id || 0);
     const [image, setImage] = useState(food?.image || "");
-    const [status, setStatus] = useState<StatusTypeFood>(food?.status || 'Còn');
+    // const [status, setStatus] = useState<StatusTypeFood>(food?.status || 'Còn');
     const [file, setFile] = useState<File | null>(null);
 
     useEffect(() => {
@@ -29,7 +29,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
             setPrice(String(food.price));
             setSelectedCategory(food.category_id);
             setImage(food.image || "");
-            setStatus(food.status || 'Còn');
+            // setStatus(food.status || 'Còn');
             setShowImage(food.image || null);
         }
     }, [food]);
@@ -73,6 +73,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
     }, [categoryName]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        
         e.preventDefault();
         let imageUrl = food?.image || "";
 
@@ -80,10 +81,11 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
         const fooddata = onsave({
             id: food?.id ?? Date.now(),
             name,
-            price: Number(price),
             category_id: selectedCategory ?? 0,
-            image: image || null,
-            status: status as StatusTypeFood
+            price: Number(price),
+
+            image: image || null,   
+            // status: status as StatusTypeFood
         });
 
         console.log('fooddata:', fooddata);
@@ -118,13 +120,13 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
                         ))}
                     </select>
                     <label className="form-label">Trạng Thái</label>
-                    <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value as StatusTypeFood)}>
+                    {/* <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value as StatusTypeFood)}>
                         {statuss.map((item) => (
                             <option value={item} key={item}>
                                 {item}
                             </option>
                         ))}
-                    </select>
+                    </select> */}
 
                     <div className="form-group-button">
 
