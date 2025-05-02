@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
-import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt,} from 'react-icons/fa';
+import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaMoneyBillWave} from 'react-icons/fa';
 import Menu from '../../components/Manage/Menu/Menu.tsx';
 import { FaPeopleGroup, FaTableCells } from 'react-icons/fa6';
-import Table from '../../components/Manage/Table/Table.tsx'
-import Staff from '../../components/Manage/Staff/Staff.tsx'
+import Table from '../../components/Manage/Table/Table.tsx';
+import Staff from '../../components/Manage/Staff/Staff.tsx';
+import PaymentManagement from '../../components/Manage/Payment/Payment';
 import Category from '../../components/Manage/Category/Category.tsx';
+import OrderManagement from '../../components/Manage/Order/Order.tsx';
+import ReportDashboard from '../../components/Manage/Report/Report.tsx';
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
@@ -158,6 +161,13 @@ const Admin = () => {
             <FaPeopleGroup size={20} />
             {!isSidebarCollapsed && <span>Quản Lý Nhân Viên</span>}
           </div>
+          <div
+            className={`sidebar-menu-item ${activeTab === 'payment' ? 'active' : ''}`}
+            onClick={() => setActiveTab('payment')}
+          >
+            <FaMoneyBillWave size={20} />
+            {!isSidebarCollapsed && <span>Quản lý thanh toán</span>}
+          </div>
         </div>
 
         <div className="sidebar-footer">
@@ -181,7 +191,7 @@ const Admin = () => {
             {activeTab === 'stats' && 'Thống kê'}
             {activeTab === 'table' && 'Quản Lý Bàn'}
             {activeTab === 'staff' && 'Quản Lý Nhân Viên'}
-
+            {activeTab === 'payment' && 'Quản Lý Nhân Viên'}
           </h1>
           <div className="admin-info">
             <span className="admin-name">Admin</span>
@@ -191,13 +201,13 @@ const Admin = () => {
         <div className="content-body">
           {activeTab === 'qrcode' && <QrCodeGenerator />}
           {activeTab === 'dashboard' && <div className="placeholder-content">Tính năng đang phát triển</div>}
-          {activeTab === 'orders' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'orders' && <div><OrderManagement /></div>}
           {activeTab === 'cate' && <div><Category /></div>}
           {activeTab === 'menu' && <div><Menu /></div>}
-          {activeTab === 'stats' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'stats' && <div><ReportDashboard /></div>}
           {activeTab === 'table' && <div><Table /></div>}
           {activeTab === 'staff' && <div><Staff /></div>}
-
+          {activeTab === 'payment' && <div><PaymentManagement /></div>}
         </div>
       </div>
     </div>

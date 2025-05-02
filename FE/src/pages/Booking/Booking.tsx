@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Booking.scss';
+import axios from 'axios';
 
 const Booking = () => {
   const [formData, setFormData] = useState({
@@ -93,13 +94,27 @@ const Booking = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      console.log('Booking data:', formData);
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (validateForm()) {
+    // Map đúng fields backend yêu cầu
+    const bookingData = {
+      customer_name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      guests: Number(formData.guests),
+      booking_date: formData.date,
+      booking_time: formData.time,
+      note: formData.notes,
+      status: 'pending', // tự set mặc định pending
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/table-booking', bookingData);
+      console.log('Booking response:', response.data);
+
       alert('Đặt bàn thành công!');
-      // Reset form sau khi đặt bàn thành công
       setFormData({
         date: '',
         time: '',
@@ -113,14 +128,17 @@ const Booking = () => {
         window: false,
         childrenChair: false,
       });
-    } else {
-      // Cuộn đến phần tử có lỗi đầu tiên
-      const firstErrorField = document.querySelector('.error-message');
-      if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Đặt bàn thất bại, vui lòng thử lại.');
     }
-  };
+  } else {
+    const firstErrorField = document.querySelector('.error-message');
+    if (firstErrorField) {
+      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+};
 
   const todayStr = new Date().toISOString().split("T")[0];
 

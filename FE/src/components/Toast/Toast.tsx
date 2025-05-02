@@ -10,13 +10,16 @@ interface ToastProps {
 
 export const Toast: React.FC<ToastProps> = ({ message, type = 'success', duration = 3000, onClose }) => {
   useEffect(() => {
+    // Automatically close the toast after specified duration
     const timer = setTimeout(() => {
       onClose();
     }, duration);
     
+    // Clean up the timer when component unmounts
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
+  // Render appropriate icon based on toast type
   const renderIcon = () => {
     switch (type) {
       case 'success':
