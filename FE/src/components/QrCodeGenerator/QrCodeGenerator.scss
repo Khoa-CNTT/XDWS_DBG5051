@@ -1,0 +1,167 @@
+.qr-generator {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .qr-generator-form {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--box-shadow);
+        padding: 30px;
+        margin-bottom: 30px;
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+
+        form {
+            max-width: 500px;
+
+            .form-group {
+                margin-bottom: 20px;
+
+                label {
+                    display: block;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                }
+
+                input {
+                    width: 100%;
+                    padding: 10px 15px;
+                    border: 1px solid var(--gray);
+                    border-radius: var(--border-radius-sm);
+                    font-size: 16px;
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        outline: none;
+                    }
+                }
+
+                small {
+                    display: block;
+                    margin-top: 5px;
+                    color: var(--light-text);
+                    font-size: 14px;
+                }
+            }
+
+            .generate-btn {
+                background-color: var(--primary-color);
+                color: var(--white);
+                border: none;
+                border-radius: var(--border-radius-md);
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.3s;
+
+                &:hover {
+                    background-color: darken(#f08404, 10%);
+                }
+            }
+        }
+    }
+
+    .qr-codes-container {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--box-shadow);
+        padding: 30px;
+
+        .qr-codes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+
+            h3 {
+                font-size: 20px;
+                font-weight: 600;
+            }
+
+            .print-btn {
+                background-color: var(--black);
+                color: var(--white);
+                border: none;
+                border-radius: var(--border-radius-sm);
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.3s;
+
+                &:hover {
+                    background-color: #333;
+                }
+            }
+        }
+
+        .qr-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px;
+
+            .qr-code-item {
+                background-color: var(--white);
+                border: 1px solid var(--gray);
+                border-radius: var(--border-radius-md);
+                padding: 20px;
+                text-align: center;
+
+                .qr-code {
+                    margin-bottom: 15px;
+                    display: flex;
+                    justify-content: center;
+                }
+
+                .qr-code-details {
+                    h4 {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                    }
+
+                    p {
+                        color: var(--light-text);
+                        font-size: 14px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Print styles for QR codes */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .qr-codes-container,
+    .qr-codes-container * {
+        visibility: visible;
+    }
+
+    .qr-codes-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        padding: 0;
+
+        .qr-codes-header .print-btn {
+            display: none;
+        }
+    }
+}
