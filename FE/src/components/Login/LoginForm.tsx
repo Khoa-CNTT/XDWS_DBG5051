@@ -1,65 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
+import { api } from '../../Api/AxiosIntance';
+import axios from 'axios';
+import { login } from '../../Api/Login';
 const loginForm = () => {
-    const navigate = useNavigate(); // thêm dòng này vào đầu component
 
-    const [name, setName] = useState('');
+    const [name, setName] = useState('a');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const api = axios.create({
-        baseURL: 'http://localhost:8000/api',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    const navigate = useNavigate();
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try {
-            const response = await api.post('/login', { name, password });
-            const token = response.data.token;
-            const role = response.data.role ?? null; // fallback về null nếu không có
+
+            const result = await login(name, password);
+
+            const token = result.token;
+            const role = result.role ?? null;
 
             localStorage.setItem('token', token);
             localStorage.setItem('role', role);
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            setIsAuthenticated(true);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            console.log('Đăng nhập thành công:', result.role);
+            console.log('TOKEN:', token)
             setError('');
 
-            // 🔁 Chuyển hướng dựa theo role
+
             if (role === 'employee') {
                 navigate('/employee');
             } else {
-                // Mặc định không có role thì là admin
                 navigate('/admin');
             }
+
         } catch (error: any) {
             console.error(error);
 
             if (error.response && error.response.data && error.response.data.message) {
-                setError(error.response.data.message);
+                setError(error.response.message);
             } else {
                 setError('Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            // Redirect to login hoặc show form login
-        } else {
-            // Gọi API xác thực hoặc tiếp tục load data
-        }
-    }, []);
-
-
-
     return (
         <div className="admin-login-page">
             <div className="container">

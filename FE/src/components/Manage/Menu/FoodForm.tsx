@@ -73,7 +73,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
     }, [categoryName]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        
+
         e.preventDefault();
         let imageUrl = food?.image || "";
 
@@ -84,7 +84,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
             category_id: selectedCategory ?? 0,
             price: Number(price),
 
-            image: image || null,   
+            image: image || null,
             // status: status as StatusTypeFood
         });
 

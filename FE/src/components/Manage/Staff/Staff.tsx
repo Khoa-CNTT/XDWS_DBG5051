@@ -1,37 +1,82 @@
-import { useState } from 'react'
-import { staffList, StaffList } from './StaffList'
+import { useEffect, useState } from 'react'
+import {
+    //  staffList,
+    StaffList
+} from './StaffList'
 import FormStaff from './FormStaff'
 import './Staff.scss'
 
+import { authHeader } from '../../../Api/Login'
+import axios from 'axios'
+
 const Staff = () => {
-    const headers = ['Tên', 'Số Điện Thoại', 'Email', 'Vị Trí', 'Trạng Thái', 'Hành Động']
 
+
+    const headers = ['Tên Nhân Viên', 'Email', 'Số điện thoại', 'Hành Động']
     const [showForm, setShowForm] = useState(false)
-    const [staffs, setStaffs] = useState(staffList)
-    const [initStaffs, setInitStaffs] = useState<StaffList | null>(null)
 
-    const handleSaveFood = (staff: StaffList) => {
-        if (initStaffs) {
-            setStaffs(staffs.map((item) => (item.id === staff.id ? staff : item)));
-        } else {
-            setStaffs([...staffs, { ...staff, id: Date.now() }]);
+    const [staffs, setStaffs] = useState<StaffList[]>([])
+    const [initStaffs, setInitStaffs] = useState<StaffList | null>(null)
+    const [refresh, setRefresh] = useState(false)
+
+    useEffect(() => {
+        const fetchStaff = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/api/admin/list-user', authHeader());
+                if (Array.isArray(res.data.data)) {
+                    setStaffs(res.data.data);
+                } else {
+                    console.error('Dữ liệu trả về không phải là một mảng:', res.data);
+                    setStaffs([]); // Đặt giá trị mặc định là mảng rỗng
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách nhân viên:', error);
+                setStaffs([]); // Đặt giá trị mặc định là mảng rỗng khi có lỗi
+            }
+        };
+
+        fetchStaff();
+    }, [refresh]);
+
+
+
+
+
+    const handleSaveStaff = async (staff: StaffList) => {
+        try {
+            if (initStaffs) {
+                const res = await axios.put(`http://localhost:8000/api/admin/update-user/${staff.id}`, staff,
+                    authHeader()
+                );
+                console.log('Cập nhật Nhân Viên thành công:', res.data);
+            } else {
+
+                const res = await axios.post(`http://localhost:8000/api/admin/add-user`, staff, authHeader());
+                console.log('Thêm nhân viên ăn thành công:', res.data);
+            }
+
+            setShowForm(false);
+            setInitStaffs(null);
+            setRefresh(prev => !prev);
+        } catch (error: any) {
+            console.error('Lỗi khi lưu nhân viên:', error.response);
+
         }
-        setShowForm(false);
-        setInitStaffs(null);
     };
 
-    const handleDelete = (staffselect: StaffList) => {
-        const confirmDelete = window.confirm(` Bạn muốn xóa ${staffselect.name}`)
+    const handleDelete = (staffSelect: StaffList) => {
+        const confirmDelete = window.confirm(` Bạn muốn xóa ${staffSelect.name}`)
         if (confirmDelete) {
-            const updatedstaffs = staffs.filter(food => food.id !== staffselect.id)
-            setStaffs(updatedstaffs)
+            axios.delete(`http://localhost:8000/api/admin/cate/${staffSelect.id}`)
+            const updateStaff = staffs.filter((food) => food.id !== staffSelect.id)
+            setStaffs(updateStaff)
         }
     }
 
-    const handleEdit = (staff: StaffList) => {
-        setInitStaffs(staff);
+    const handleEdit = (food: StaffList) => {
+        setInitStaffs(food);
         setShowForm(true);
-        console.log(staff);
+        console.log(food);
 
     };
 
@@ -67,13 +112,16 @@ const Staff = () => {
                                 <tr key={staff.id} className="staff-row">
 
                                     <td className="staff-name">{staff.name}</td>
-                                    <td className="staff-price">{staff.phoneNumber.toLocaleString()}</td>
+
                                     <td className="staff-mail">
                                         {staff.email}
                                     </td>
+                                    <td className="staff-phone">
+                                        {staff.phone}
+                                    </td>
 
-                                    <td className="staff-type">{staff.position}</td>
-                                    <td className="staff-type">{staff.statusStaff}</td>
+
+
                                     <td className="staff-actions">
                                         <button className="btn-edit"
                                             onClick={() => handleEdit(staff)}
@@ -97,7 +145,7 @@ const Staff = () => {
             {showForm && (
                 <div className="overlay">
                     <FormStaff
-                        onsave={handleSaveFood}
+                        onsave={handleSaveStaff}
                         staff={initStaffs}
                         closeForm={handleClose}
                     />
