@@ -23,9 +23,9 @@ class UserRequest extends FormRequest
     {
         return [
             'name'=>'required|max:191',
+            'phone'=>'required|max:12', 
             'email'=>'required|email|unique:users',
             'password'=>'required',
-            'role' => "in:admin, staff"
         ];
     }
 
@@ -37,7 +37,6 @@ class UserRequest extends FormRequest
             'email.email' => 'Email sai định dạng',
             'email.unique' => 'Email đã tồn tại',
             'password.required' => 'Mật khẩu không được để trống',
-            'role.in' => 'Vai trò không hợp lệ. Chỉ chấp nhận admin hoặc staff.',
         ];
     }
 }
