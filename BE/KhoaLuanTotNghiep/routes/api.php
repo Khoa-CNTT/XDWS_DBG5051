@@ -41,6 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/list-user', [AuthController::class, 'index']);
         //add
         Route::post('/admin/add-user', [AuthController::class, 'register']);
+        // update
+        Route::put('/admin/update-user/{id}', [AuthController::class, 'update']);
         //delete
         Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
 
@@ -73,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
         //Quan ly Dat ban
         Route::get('/admin/list-booking', [BookingController::class, 'index']);
         //câp nhật đơn đặt bàn
-        
+        Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);
     });
 
     // 🔹 Chỉ staff mới có quyền vào route này
@@ -120,5 +122,3 @@ Route::post('/cart/down', [CartController::class, 'downQtyCart']);
 
 // Xóa sản phẩm khỏi giỏ
 Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
-
-Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);
