@@ -22,9 +22,9 @@ class TableRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'table_number' => 'required|string|unique:tables,table_number|max:10', 
+            'table_number' => 'required|string|unique:tables,table_number|max:10',
             'qr_code' => 'nullable|string',
-           'status' => 'in:available,occupied,reserved' // Chỉ chấp nhận 3 giá trị này
+            'status' => 'in:available,occupied,reserved' // Chỉ chấp nhận 3 giá trị này
         ];
     }
 
