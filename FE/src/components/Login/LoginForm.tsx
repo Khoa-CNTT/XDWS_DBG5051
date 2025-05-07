@@ -36,12 +36,12 @@ const loginForm = () => {
             }
 
         } catch (error: any) {
-            console.error(error);
+            console.error('Đăng nhập thất bại:', error.response);
 
             if (error.response && error.response.data && error.response.data.message) {
                 setError(error.response.message);
             } else {
-                setError(error.response.data || 'Đăng nhập thất bại, vui lòng thử lại.');
+                setError(` Lỗi đăng nhập ${error.response.message}` || 'Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };
