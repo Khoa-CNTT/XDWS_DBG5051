@@ -24,7 +24,7 @@ class UserRequest extends FormRequest
         return [
             'name'=>'required|max:191',
             'phone'=>'required|max:12', 
-            'email'=>'required|email|unique:users',
+            'email'=>'required|email',
             'password'=>'required',
         ];
     }
@@ -33,9 +33,10 @@ class UserRequest extends FormRequest
         return [
             'name.required' => 'Tên không được để trống',
             'name.max' => 'Tên không được quá :max ký tự',
+            'phone.required' => 'Số điện thoại không được để trống',
+            'phone.max' => 'Số điện thoại không được quá :max ký tự',
             'email.required' => 'Email không được để trống',
             'email.email' => 'Email sai định dạng',
-            'email.unique' => 'Email đã tồn tại',
             'password.required' => 'Mật khẩu không được để trống',
         ];
     }

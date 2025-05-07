@@ -26,7 +26,7 @@ class MenuRequest extends FormRequest
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|string',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
     public function messages(){
@@ -42,7 +42,9 @@ class MenuRequest extends FormRequest
             'price.numeric' => 'Giá món ăn phải là số.',
             'price.min' => 'Giá món ăn phải lớn hơn hoặc bằng 0.',
 
-            'image.string' => 'Đường dẫn hình ảnh phải là chuỗi ký tự.',
+            'image' => ':attribute: Hinh anh upload len phai la hinh anh',
+            'image.*.mimes' => 'Hình ảnh phải có định dạng: jpeg, png, jpg hoặc gif.',
+            'imge.max' => ':attribute: Hinh anh upload len khong duoc vuot qua kich thuoc cho phep: max',
         ];
     }
 
