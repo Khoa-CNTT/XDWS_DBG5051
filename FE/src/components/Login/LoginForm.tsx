@@ -29,8 +29,8 @@ const loginForm = () => {
             setError('');
 
 
-            if (role === 'employee') {
-                navigate('/employee');
+            if (role === 'staff') {
+                navigate('/staff');
             } else {
                 navigate('/admin');
             }
@@ -41,7 +41,7 @@ const loginForm = () => {
             if (error.response && error.response.data && error.response.data.message) {
                 setError(error.response.message);
             } else {
-                setError('Đăng nhập thất bại, vui lòng thử lại.');
+                setError(error.response.data || 'Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };
