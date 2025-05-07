@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CateController;
+use App\Http\Controllers\API\CheckoutController;
 use App\Http\Controllers\API\MenuController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ReportController;
@@ -49,8 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Quan ly ban
         // ban
         Route::get('/table', [TableController::class, 'index']);
-        // add
-        Route::post('/admin/add-table', [TableController::class, 'store']);
+
         // update
         Route::put('/admin/update-table/{id}', [TableController::class, 'update']);
         // delete
@@ -65,8 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/delete-cate/{id}', [CateController::class, 'destroy']);
 
         //Menu
-        // add
-        Route::post('/admin/add-menu', [MenuController::class, 'store']);
+        
         // update
         Route::put('/admin/update-menu/{id}', [MenuController::class, 'update']);
         // delete
@@ -89,10 +88,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/staff/order-item/{id}', [OrderController::class, 'show']);
         // Bàn
         Route::get('/table', [TableController::class, 'index']);
+        //Thanh toán
+        Route::post('/staff/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
 
+        Route::post('/staff/internal_payment', [CheckoutController::class, 'internal_payment']);
     });
 });
-
 
 // Danh mục 
 Route::get('/cate', [CateController::class, 'index']);
@@ -122,3 +123,10 @@ Route::post('/cart/down', [CartController::class, 'downQtyCart']);
 
 // Xóa sản phẩm khỏi giỏ
 Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
+Route::get('/staff/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
+
+// add
+Route::post('/admin/add-menu', [MenuController::class, 'store']);
+
+
+

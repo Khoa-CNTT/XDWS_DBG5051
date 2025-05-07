@@ -22,24 +22,23 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:users',
+            'name' => 'required|string|max:255',
+            'phone'=>'required|max:12', 
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:5|confirmed',
-            'role' => 'required|in:admin,staff',
+            'password' => 'required|string|min:5',
         ];
     }
     public function messages() {
         return [
             'name.required' => 'Tên không được để trống',
-            'name.unique' => 'Email đã tồn tại',
+            'name.max' => 'Tên không được quá :max ký tự',
+            'phone.required' => 'Số điện thoại không được để trống',
+            'phone.max' => 'Số điện thoại không được quá :max ký tự',
             'email.required' => 'Email không được để trống',
             'email.email' => 'Email không hợp lệ',
             'email.unique' => 'Email đã tồn tại',
             'password.required' => 'Mật khẩu không được để trống',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
-            'password.confirmed' => 'Mật khẩu xác nhận không khớp',
-            'role.required' => 'Vai trò không được để trống',
-            'role.in' => 'Vai trò không hợp lệ (chỉ admin hoặc staff)',
         ];
     }
 }
