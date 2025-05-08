@@ -48,9 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/user/{id}', [AuthController::class, 'destroy']);
 
         // Quan ly ban
-        // ban
-        Route::get('/table', [TableController::class, 'index']);
-
+        // add
+        Route::post('/admin/add-table', [TableController::class, 'store']);
         // update
         Route::put('/admin/update-table/{id}', [TableController::class, 'update']);
         // delete
@@ -65,7 +64,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/delete-cate/{id}', [CateController::class, 'destroy']);
 
         //Menu
-        
+        // add
+        Route::post('/admin/add-menu', [MenuController::class, 'store']);
         // update
         Route::put('/admin/update-menu/{id}', [MenuController::class, 'update']);
         // delete
@@ -86,18 +86,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         // Đơn hàng chi tiết
         Route::get('/staff/order-item/{id}', [OrderController::class, 'show']);
-        // Bàn
-        Route::get('/table', [TableController::class, 'index']);
         //Thanh toán
         Route::post('/staff/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
-
+        Route::get('/staff/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
         Route::post('/staff/internal_payment', [CheckoutController::class, 'internal_payment']);
     });
 });
 
 // Danh mục 
 Route::get('/cate', [CateController::class, 'index']);
-
+// ban
+Route::get('/table', [TableController::class, 'index']);
 //Menu
 Route::get('/list-menu', [MenuController::class, 'index']);
 
@@ -123,10 +122,9 @@ Route::post('/cart/down', [CartController::class, 'downQtyCart']);
 
 // Xóa sản phẩm khỏi giỏ
 Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
-Route::get('/staff/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
 
-// add
-Route::post('/admin/add-menu', [MenuController::class, 'store']);
+
+
 
 
 
