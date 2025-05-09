@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../Api/AxiosIntance';
 import axios from 'axios';
-import { login } from '../../Api/Login';
-const loginForm = () => {
+import { login, getUserInfo } from '../../Api/Login';
 
+const loginForm = () => {
     const [name, setName] = useState('a');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -14,37 +14,47 @@ const loginForm = () => {
         e.preventDefault();
 
         try {
-
             const result = await login(name, password);
-
             const token = result.token;
-            const role = result.role ?? null;
 
+            // Lưu token vào localStorage và set header
             localStorage.setItem('token', token);
-            localStorage.setItem('role', role);
-
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            console.log('Đăng nhập thành công:', result.role);
-            console.log('TOKEN:', token)
+            console.log('TOKEN:', token);
             setError('');
 
-
-            if (role === 'employee') {
-                navigate('/employee');
-            } else {
-                navigate('/admin');
+            // Lấy thông tin người dùng và kiểm tra role
+            try {
+                const userInfo = await getUserInfo();
+                console.log('Thông tin người dùng:', userInfo);
+                
+                // Lưu role vào localStorage
+                localStorage.setItem('role', userInfo.role);
+                
+                // Kiểm tra role và điều hướng
+                if (userInfo.role === 'admin') {
+                    navigate('/admin');
+                } else if (userInfo.role === 'employee') {
+                    navigate('/employee');
+                } else {
+                    setError('Không có quyền truy cập');
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy thông tin người dùng:', error);
+                setError('Không thể lấy thông tin người dùng');
             }
 
         } catch (error: any) {
             console.error(error);
 
             if (error.response && error.response.data && error.response.data.message) {
-                setError(error.response.message);
+                setError(error.response.data.message);
             } else {
                 setError('Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };
+
     return (
         <div className="admin-login-page">
             <div className="container">

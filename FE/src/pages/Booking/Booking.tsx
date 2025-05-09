@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import './Booking.scss';
+import axios from 'axios';
+import { bookingService } from '../../services/bookingService';
 
 const Booking = () => {
   const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    guests: '',
     name: '',
-    phone: '',
     email: '',
+    phone: '',
+    guests: '',
+    booking_date: '',
+    time: '',
     notes: '',
     withChildren: false,
     birthday: false,
@@ -48,7 +50,7 @@ const Booking = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const selectedDate = formData.date ? new Date(formData.date) : null;
+    const selectedDate = formData.booking_date ? new Date(formData.booking_date) : null;
     if (selectedDate) {
       selectedDate.setHours(0, 0, 0, 0);
     }
@@ -57,10 +59,10 @@ const Booking = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     // Kiểm tra các lỗi form
-    if (!formData.date) {
-      newErrors.date = 'Vui lòng chọn ngày đặt bàn';
+    if (!formData.booking_date) {
+      newErrors.booking_date = 'Vui lòng chọn ngày đặt bàn';
     } else if (selectedDate && selectedDate < today) {
-      newErrors.date = 'Không thể chọn ngày trong quá khứ';
+      newErrors.booking_date = 'Không thể chọn ngày trong quá khứ';
     }
 
     if (!formData.time) {
@@ -93,28 +95,48 @@ const Booking = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      console.log('Booking data:', formData);
-      alert('Đặt bàn thành công!');
-      // Reset form sau khi đặt bàn thành công
-      setFormData({
-        date: '',
-        time: '',
-        guests: '',
-        name: '',
-        phone: '',
-        email: '',
-        notes: '',
-        withChildren: false,
-        birthday: false,
-        window: false,
-        childrenChair: false,
-      });
+      // Map đúng fields theo interface BookingRequest
+      const bookingData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        guests: Number(formData.guests),
+        booking_date: formData.booking_date,
+        time: formData.time,
+        notes: formData.notes,
+        withChildren: formData.withChildren,
+        birthday: formData.birthday,
+        window: formData.window,
+        childrenChair: formData.childrenChair
+      };
+
+      try {
+        const response = await bookingService.createBooking(bookingData);
+        console.log('Booking response:', response);
+
+        alert('Đặt bàn thành công!');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          guests: '',
+          booking_date: '',
+          time: '',
+          notes: '',
+          withChildren: false,
+          birthday: false,
+          window: false,
+          childrenChair: false,
+        });
+      } catch (error) {
+        console.error('Booking error:', error);
+        alert('Đặt bàn thất bại, vui lòng thử lại.');
+      }
     } else {
-      // Cuộn đến phần tử có lỗi đầu tiên
       const firstErrorField = document.querySelector('.error-message');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -141,17 +163,17 @@ const Booking = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="date">Ngày đặt bàn <span className="required">*</span></label>
+                  <label htmlFor="booking_date">Ngày đặt bàn <span className="required">*</span></label>
                   <input
                     type="date"
-                    id="date"
-                    name="date"
-                    value={formData.date}
+                    id="booking_date"
+                    name="booking_date"
+                    value={formData.booking_date}
                     onChange={handleChange}
                     min={todayStr}
-                    className={errors.date ? 'error' : ''}
+                    className={errors.booking_date ? 'error' : ''}
                   />
-                  {errors.date && <div className="error-message">{errors.date}</div>}
+                  {errors.booking_date && <div className="error-message">{errors.booking_date}</div>}
                 </div>
 
                 <div className="form-group">

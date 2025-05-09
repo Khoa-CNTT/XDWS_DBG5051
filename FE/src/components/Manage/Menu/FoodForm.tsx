@@ -98,6 +98,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
 
                 <form className="form-group"
                     onSubmit={handleSubmit}
+                    encType="multipart/form-data"
                 >
                     <label className="form-label" >Ảnh</label>
                     <input type="file" className="form-input" onChange={

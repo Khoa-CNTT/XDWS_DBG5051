@@ -1,16 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../../Api/AxiosIntance';
 import './Menu.scss';
+import LoadingSpinner from '../../components/Loading/LoadingSpinner.tsx';
+
+// API Constants
+const API_ENDPOINTS = {
+  MENU: '/list-menu',
+  CATEGORIES: '/cate',
+  POPULAR_DISHES: '/popular-dishes'
+};
 
 // Define menu item type
 type MenuItem = {
   category_id: any;
   id: string | number;
   name: string;
-  description: string;
   price: number;
-  category: string;
+  category: {
+    id: number;
+    name: string;
+  };
   image?: string;
   popular?: boolean;
 };
@@ -21,8 +31,9 @@ const Menu = () => {
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [popularItems, setPopularItems] = useState<MenuItem[]>([]);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   
   // Search state
@@ -44,16 +55,17 @@ const Menu = () => {
       try {
         setLoading(true);
   
-        // Gọi cả hai API cùng lúc
-        const [menuResponse, categoryResponse] = await Promise.all([
-          axios.get('http://127.0.0.1:8000/api/list_menu'),
-          axios.get('http://127.0.0.1:8000/api/cate')
+        // Gọi cả ba API cùng lúc
+        const [menuResponse, categoryResponse, popularResponse] = await Promise.all([
+          api.get(API_ENDPOINTS.MENU),
+          api.get(API_ENDPOINTS.CATEGORIES),
+          api.get(API_ENDPOINTS.POPULAR_DISHES)
         ]);
-  
   
         // Lấy dữ liệu từ API (kiểm tra xem có phải mảng không)
         const menuData = menuResponse.data.data;
         const categoryData = categoryResponse.data.data;
+        const popularData = popularResponse.data;
   
         if (!Array.isArray(menuData) || !Array.isArray(categoryData)) {
           throw new Error('Dữ liệu API không đúng định dạng');
@@ -64,6 +76,17 @@ const Menu = () => {
   
         // Cập nhật danh mục (lấy từ API danh mục thay vì từ danh sách món)
         setCategoryOrder(categoryData.map(category => category.name));
+        
+        // Cập nhật danh sách món ăn phổ biến
+        if (Array.isArray(popularData)) {
+          setPopularItems(popularData);
+        } else if (popularData && popularData.data && Array.isArray(popularData.data)) {
+          setPopularItems(popularData.data);
+        } else {
+          console.error('Dữ liệu món phổ biến không đúng định dạng', popularData);
+          // Fallback: nếu API trả về không đúng định dạng, sử dụng những món có flag popular = true
+          setPopularItems(menuData.filter(item => item.popular).slice(0, 8));
+        }
   
         setLoading(false);
       } catch (err) {
@@ -75,24 +98,31 @@ const Menu = () => {
   
     fetchData();
   }, []);
-  
 
   // Helper functions using the state instead of imported data
   const groupMenuItemsByCategory = () => {
     const grouped: Record<string, MenuItem[]> = {};
     
     menuItems.forEach(item => {
-      if (!grouped[item.category]) {
-        grouped[item.category] = [];
+      // Sử dụng item.category.name thay vì item.category
+      const categoryName = item.category?.name || 'Khác';
+      
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = [];
       }
-      grouped[item.category].push(item);
+      grouped[categoryName].push(item);
     });
     
     return grouped;
   };
 
   const getPopularItems = () => {
-    return menuItems.filter(item => item.popular).slice(0, 6);
+    // Sử dụng danh sách phổ biến từ API thay vì lọc từ menuItems
+    return popularItems;
+  };
+
+  const getAllItems = () => {
+    return menuItems;
   };
 
   // Search function to filter items by keyword
@@ -101,8 +131,7 @@ const Menu = () => {
     
     const normalizedKeyword = keyword.toLowerCase().trim();
     return menuItems.filter(item => 
-      item.name.toLowerCase().includes(normalizedKeyword) ||
-      item.description.toLowerCase().includes(normalizedKeyword)
+      item.name.toLowerCase().includes(normalizedKeyword)
     );
   };
 
@@ -121,22 +150,26 @@ const Menu = () => {
     if (!loading && menuItems.length > 0) {
       if (selectedCategory === 'popular') {
         setFilteredItems(getPopularItems());
+      } else if (selectedCategory === 'all') {
+        setFilteredItems(getAllItems());
       } else {
         setFilteredItems(groupedMenu[selectedCategory] || []);
       }
     }
-  }, [loading, menuItems, selectedCategory]);
+  }, [loading, menuItems, selectedCategory, popularItems]);
   
   // Handle normal category filtering
   useEffect(() => {
     if (!isSearching && !isPriceFiltering && !loading && menuItems.length > 0) {
       if (selectedCategory === 'popular') {
         setFilteredItems(getPopularItems());
+      } else if (selectedCategory === 'all') {
+        setFilteredItems(getAllItems());
       } else {
         setFilteredItems(groupedMenu[selectedCategory] || []);
       }
     }
-  }, [selectedCategory, isSearching, isPriceFiltering, loading, menuItems.length]);
+  }, [selectedCategory, isSearching, isPriceFiltering, loading, menuItems.length, popularItems]);
   
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
@@ -169,6 +202,8 @@ const Menu = () => {
     // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
+    } else if (selectedCategory === 'all') {
+      setFilteredItems(getAllItems());
     } else {
       setFilteredItems(groupedMenu[selectedCategory] || []);
     }
@@ -223,6 +258,8 @@ const Menu = () => {
     // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
+    } else if (selectedCategory === 'all') {
+      setFilteredItems(getAllItems());
     } else {
       setFilteredItems(groupedMenu[selectedCategory] || []);
     }
@@ -238,9 +275,14 @@ const Menu = () => {
       clearPriceFilter();
     }
   };
-  
+
   if (loading) {
-    return <div className="loading">Đang tải dữ liệu...</div>;
+    return <LoadingSpinner 
+      loadingText="Đang tải thực đơn..." 
+      showDots={true} 
+      showSkeleton={true} 
+      skeletonCount={2} 
+    />;
   }
 
   if (error) {
@@ -254,7 +296,11 @@ const Menu = () => {
           <h1>Thực Đơn</h1>
           <div className="breadcrumb">
             <Link to="/">Trang chủ</Link> {'>'} <span>Thực đơn</span> {'>'} 
-            <span>{isSearching ? 'Kết quả tìm kiếm' : (selectedCategory === 'popular' ? 'Món phổ biến' : selectedCategory)}</span>
+            <span>
+              {isSearching ? 'Kết quả tìm kiếm' : 
+                (selectedCategory === 'popular' ? 'Món phổ biến' : 
+                (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
+            </span>
           </div>
           
           {/* Search Box */}
@@ -316,10 +362,15 @@ const Menu = () => {
           </div>
         </div>
 
-        
         <div className="menu-container">
           <div className="menu-sidebar">
             <ul className="category-list">
+              <li
+                className={selectedCategory === 'all' && !isSearching ? 'active' : ''}
+                onClick={() => handleCategoryClick('all')}
+              >
+                Tất cả món ăn
+              </li>
               <li
                 className={selectedCategory === 'popular' && !isSearching ? 'active' : ''}
                 onClick={() => handleCategoryClick('popular')}
@@ -378,21 +429,31 @@ const Menu = () => {
             {/* Menu Items */}
             {(!searchPerformed || searchResults.length > 0) && (
               <div className="menu-items">
-                {filteredItems.map(item => (
-                  <div key={item.id} className="menu-item">
-                    {item.image && (
-                      <div className="item-image">
-                        <img src={item.image} alt={item.name} />
+                {filteredItems.length > 0 ? (
+                  filteredItems.map(item => (
+                    <div key={item.id} className="menu-item">
+                      {item.image && (
+                        <div className="item-image">
+                          <img src={item.image} alt={item.name} />
+                        </div>
+                      )}
+                      <div className="item-details">
+                        <h3 className="item-name">{item.name}</h3>
+                        <p className="item-price">{parseFloat(item.price.toString()).toLocaleString()}đ</p>
+                        {item.popular && <span className="popular-badge">Phổ biến</span>}
+                        {selectedCategory === 'popular' && !item.popular && (
+                          <span className="recommended-badge">Đề xuất</span>
+                        )}
                       </div>
-                    )}
-                    <div className="item-details">
-                      <h3 className="item-name">{item.name}</h3>
-                      <p className="item-description">{item.description}</p>
-                      <p className="item-price">{item.price.toLocaleString()}đ</p>
-                      {item.popular && <span className="popular-badge">Phổ biến</span>}
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  !searchPerformed && !priceFilterPerformed && (
+                    <div className="no-items">
+                      <p>Không có món ăn trong danh mục này.</p>
+                    </div>
+                  )
+                )}
               </div>
             )}
           </div>
