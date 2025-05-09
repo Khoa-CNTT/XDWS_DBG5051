@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import { api } from "../../../Api/AxiosIntance"
+import CateForm from "./CateForm"
 
 export type CategoryType = {
     id: number;
@@ -9,57 +10,114 @@ export type CategoryType = {
 }
 const Category = () => {
     const [category, setCategory] = useState<CategoryType[]>([])
+    const [showAddForm, setShowAddForm] = useState(false)
+    const [initCate, setInitCate] = useState<CategoryType | null>(null)
+    const [refresh, setRefresh] = useState(false)
+    const headers = ['Tên Danh Mục', 'Hành Động']
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/cate');
-                setCategory(response.data.data.map((item: CategoryType) => item)); // Lưu danh mục vào state
+                const response = await api.get('/cate');
+                setCategory(response.data.data.map((item: CategoryType) => item));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
 
-
         fetchCategories();
-    }, []);
+    }, [refresh]);
 
+    const handleEdit = (cate: CategoryType) => {
+        setInitCate(cate);
+        setShowAddForm(true);
+        console.log(cate);
+    };
+
+    const handleClose = () => {
+        setInitCate(null)
+        setShowAddForm(false)
+    }
+
+    const handleSaveCate = async (cate: CategoryType) => {
+        try {
+            if (initCate) {
+                const res = await api.put(`/admin/update-cate/${cate.id}`, cate);
+                console.log('Cập nhật Danh Mục thành công:', res.data);
+            } else {
+                const res = await api.post(`/admin/add-cate`, cate);
+                console.log('Thêm danh mục thành công:', res.data);
+            }
+
+            setShowAddForm(false);
+            setInitCate(null);
+            setRefresh(prev => !prev);
+        } catch (error: any) {
+            console.error('Lỗi khi lưu danh mục:', error.response);
+        }
+    };
+
+    const handleDelete = async (cate: CategoryType) => {
+        const confirmDelete = window.confirm(` Bạn muốn xóa ${cate.name}`)
+        if (confirmDelete) {
+            try {
+                const res = await api.delete(`/admin/cate/${cate.id}`);
+                console.log('Xóa danh mục thành công:', res.data);
+                setCategory((prev) => prev.filter((item) => item.id !== cate.id));
+            } catch (error) {
+                console.error('Lỗi khi xóa danh mục:', error);
+            }
+        }
+    }
 
     return (
+        <div className='Menu-Manage'>
+            <div className='Head'>
+                <button className="add-btn" onClick={() => setShowAddForm(true)} >+ Thêm Danh Mục Mới</button>
+            </div>
 
-        <div className="category-list">
-            <h2 className="category-title">Quản lý danh mục</h2>
-
-
-            <table className="category-items">
-                <thead>
-                    <tr className="category-header">
-                        <th className="category-header-item">ID</th>
-                        <th className="category-header-item">Tên danh mục</th>
-                        <th className="category-header-item">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {category.map((item) => (
-                        <tr className="category-item" key={item.id}>
-                            <td className="category-item-id">{item.id}</td>
-                            <td className="category-item-name">{item.name}</td>
-                            <td className="category-item-action">
-                                <button className="category-item-action-button">Thêm</button>
-                                <button className="category-item-action-button">Sửa</button>
-                                <button className="category-item-action-button">Xóa</button>
-                            </td>
+            <div className='tb-body' >
+                <table className="food-table">
+                    <thead>
+                        <tr className="food-table-header">
+                            {headers.map((item) => (
+                                <th key={item} className="header-cell">{item}</th>
+                            ))}
                         </tr>
-                    ))}
-                </tbody>
+                    </thead>
 
-            </table>
+                    <tbody className='food-table-body' >
+                        {category?.filter(Boolean).map((cate) => {
+                            console.log('Danh muc:', cate);
+                            return (
+                                <tr key={cate?.id} className="food-row">
+                                    <td className="food-name">{cate?.name}</td>
+                                    <td className="food-actions">
+                                        <button className="btn-edit"
+                                            onClick={() => handleEdit(cate)}
+                                        > Sửa</button>
+                                        <button className="btn-delete"
+                                            onClick={() => handleDelete(cate)}
+                                        >Xóa</button>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            </div>
 
-
-
-
-
+            {showAddForm && (
+                <div className="overlay">
+                    <CateForm
+                        onsave={handleSaveCate}
+                        cate={initCate}
+                        closeForm={handleClose}
+                    />
+                </div>
+            )}
         </div>
     )
 }
+
 export default Category

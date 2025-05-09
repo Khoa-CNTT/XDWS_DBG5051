@@ -3,7 +3,9 @@ import './Menu.scss'
 import { FoodItem } from './foodItem'
 import FoodForm from './FoodForm'
 import axios from 'axios'
-import { AxiosError } from 'axios';
+
+
+import { getCurrentApi, authHeader, getApiAdmin } from '../../../Api/Login'
 
 import { CategoryType } from '../Category/Category'
 const MenuManage = () => {
@@ -15,11 +17,15 @@ const MenuManage = () => {
     const [categories, setCategories] = useState<CategoryType[]>([])
     const [refresh, setRefresh] = useState(false)
 
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/api/cate');
-                setCategories(res.data.data);
+                const result = await getCurrentApi('/cate', 'get');
+                console.log('Categories:', result.data);
+                setCategories(result.data);
+                return result.data;
+
             } catch (error) {
                 console.error('Lỗi khi lấy danh mục:', error);
             }
@@ -31,9 +37,9 @@ const MenuManage = () => {
     useEffect(() => {
         const fetchMenus = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/api/list_menu');
-                setMenus(res.data.data);
-                console.log('Lấy data thành công', res.data.data.map((item: FoodItem) => item));
+                const result = await getCurrentApi('/list-menu', 'get');
+                setMenus(result.data);
+                console.log('Lấy data thành công', result.data.map((item: FoodItem) => item));
             } catch (error) {
                 console.log("Lỗi khi gọi API:", error);
             }
@@ -48,15 +54,19 @@ const MenuManage = () => {
         return `http://localhost:8000/uploads/${image}`;
     };
 
+
+
     const handleSaveMenu = async (food: FoodItem) => {
         try {
             if (initMenus) {
-                // Gọi API cập nhật món ăn
-                const res = await axios.put(`http://localhost:8000/api/admin/update_menu/${food.id}`, food);
+
+                const res = await axios.put(`http://localhost:8000/api/admin/update-menu/${food.id}`, food,
+                    authHeader()
+                );
                 console.log('Cập nhật món ăn thành công:', res.data);
             } else {
                 // Gọi API thêm món ăn
-                const res = await axios.post(`http://localhost:8000/api/admin/add_menu`, food);
+                const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, food, authHeader());
                 console.log('Thêm món ăn thành công:', res.data);
             }
 
@@ -72,9 +82,12 @@ const MenuManage = () => {
     const handleDelete = (menuselect: FoodItem) => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${menuselect.name}`)
         if (confirmDelete) {
-            axios.delete(`http://localhost:8000/api/admin/cate/${menuselect.id}`)
+            axios.delete(`http://localhost:8000/api/admin/cate/${menuselect.id}`, authHeader())
             const updatedmenus = menus.filter((food) => food.id !== menuselect.id)
+            console.log('Xóa món ăn thành công:', menuselect.name);
+
             setMenus(updatedmenus)
+
         }
     }
 
@@ -129,7 +142,7 @@ const MenuManage = () => {
                                         <td className="food-name">{food?.name}</td>
                                         <td className="food-price">{food?.price?.toLocaleString()} VNĐ</td>
                                         <td className="food-status">
-                                            {food?.status ? 'Còn' : 'Hết'}
+                                            {'Còn'}
                                         </td>
                                         <td className="food-type">
                                             {categories.find((category) => category.id === food?.category_id)?.name}

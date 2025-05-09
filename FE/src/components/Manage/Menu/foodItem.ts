@@ -6,7 +6,7 @@ export interface FoodItem {
   category_id: number;
   image: string | null;
   price: number;
-  status?: StatusTypeFood;
+  // status?: StatusTypeFood;
 }
 
 export type StatusTypeFood = 'Còn' | 'Hết';

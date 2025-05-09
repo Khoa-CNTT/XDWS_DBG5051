@@ -2,39 +2,15 @@ import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaCheck, FaTimes, FaCalendarAlt } from 'react-icons/fa';
 import './Table.scss';
 import { Toast } from '../../Toast/Toast';
-import axios from 'axios';
-
-// Định nghĩa kiểu dữ liệu Table
-interface Table {
-  id: string;
-  name: string;
-  status: 'available' | 'reserved' | 'occupied';
-  qrCodeUrl?: string;
-}
-
-// Định nghĩa kiểu dữ liệu Reservation
-interface Reservation {
-  id: string;
-  date: string;
-  time: string;
-  guests: number;
-  name: string;
-  phone: string;
-  email: string;
-  notes: string;
-  withChildren: boolean;
-  birthday: boolean;
-  window: boolean;
-  childrenChair: boolean;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  tableId?: string;
-  createdAt: string;
-}
+import { tableService, Table, TableRequest } from '../../../services/tableService';
+import { bookingService, Booking } from '../../../services/bookingService';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
 const TableManagement = () => {
   // State cho danh sách bàn
   const [tables, setTables] = useState<Table[]>([]);
   const [filteredTables, setFilteredTables] = useState<Table[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // State cho form thêm/sửa bàn
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -42,9 +18,8 @@ const TableManagement = () => {
   const [currentTable, setCurrentTable] = useState<Table | null>(null);
   
   // State cho form fields
-  const [formData, setFormData] = useState({
-    id: '',
-    name: '',
+  const [formData, setFormData] = useState<TableRequest>({
+    table_number: '',
     status: 'available'
   });
   
@@ -61,11 +36,11 @@ const TableManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all');
 
   // State cho đặt bàn
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [pendingReservations, setPendingReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<Booking[]>([]);
+  const [pendingReservations, setPendingReservations] = useState<Booking[]>([]);
   const [showReservations, setShowReservations] = useState(false);
   const [hasNewReservations, setHasNewReservations] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
   const [isReservationDetailOpen, setIsReservationDetailOpen] = useState(false);
   
   // Xử lý việc chọn bàn cho đặt bàn
@@ -74,104 +49,27 @@ const TableManagement = () => {
 
   // Lấy dữ liệu bàn và đặt bàn từ API
   useEffect(() => {
-    // Simulating API fetch for tables
-    const mockTables: Table[] = [
-      { id: '1', name: 'Bàn 1', status: 'available' },
-      { id: '2', name: 'Bàn 2', status: 'available' },
-      { id: '3', name: 'Bàn 3', status: 'occupied' },
-      { id: '4', name: 'Bàn VIP 1', status: 'available' },
-    ];
-    
-    setTables(mockTables);
-    setFilteredTables(mockTables);
-    
-    // Simulating API fetch for reservations
-    const mockReservations: Reservation[] = [
-      {
-        id: '1',
-        date: '2025-04-10',
-        time: '18:30',
-        guests: 4,
-        name: 'Nguyễn Văn A',
-        phone: '0912345678',
-        email: 'nguyenvana@gmail.com',
-        notes: 'Mong muốn có ghế cao cho trẻ nhỏ',
-        withChildren: true,
-        birthday: false,
-        window: true,
-        childrenChair: true,
-        status: 'pending',
-        createdAt: '2025-04-09T09:15:23'
-      },
-      {
-        id: '2',
-        date: '2025-04-10',
-        time: '19:00',
-        guests: 6,
-        name: 'Trần Thị B',
-        phone: '0387654321',
-        email: 'tranthib@gmail.com',
-        notes: 'Đặt bàn sinh nhật, cần chuẩn bị bánh kem',
-        withChildren: false,
-        birthday: true,
-        window: false,
-        childrenChair: false,
-        status: 'pending',
-        createdAt: '2025-04-09T10:22:45'
-      },
-      {
-        id: '3',
-        date: '2025-04-11',
-        time: '12:00',
-        guests: 2,
-        name: 'Lê Văn C',
-        phone: '0923456789',
-        email: 'levanc@gmail.com',
-        notes: '',
-        withChildren: false,
-        birthday: false,
-        window: true,
-        childrenChair: false,
-        status: 'confirmed',
-        tableId: '2',
-        createdAt: '2025-04-08T16:45:12'
-      }
-    ];
-    
-    setReservations(mockReservations);
-    
-    // Lọc ra các đặt bàn đang chờ phê duyệt
-    const pending = mockReservations.filter(res => res.status === 'pending');
-    setPendingReservations(pending);
-    
-    // Kiểm tra nếu có đặt bàn mới
-    if (pending.length > 0) {
-      setHasNewReservations(true);
-    }
-    
-    // Trong thực tế, bạn sẽ sử dụng axios để gọi API
-    // Ví dụ:
-    /*
     const fetchData = async () => {
       try {
-        const tablesResponse = await axios.get('/api/tables');
-        setTables(tablesResponse.data);
-        setFilteredTables(tablesResponse.data);
+        setIsLoading(true);
+        const tablesData = await tableService.getAllTables();
+        setTables(tablesData);
+        setFilteredTables(tablesData);
         
-        const reservationsResponse = await axios.get('/api/reservations');
-        setReservations(reservationsResponse.data);
+        const bookingsData = await bookingService.getAllBookings();
+        setReservations(bookingsData);
         
-        const pendingReservations = reservationsResponse.data.filter(
-          (res: Reservation) => res.status === 'pending'
-        );
-        setPendingReservations(pendingReservations);
+        const pending = bookingsData.filter(booking => booking.status === 'pending');
+        setPendingReservations(pending);
         
-        if (pendingReservations.length > 0) {
+        if (pending.length > 0) {
           setHasNewReservations(true);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
         showToastMessage('Không thể tải dữ liệu. Vui lòng thử lại sau.', 'error');
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -180,8 +78,8 @@ const TableManagement = () => {
     // Set up polling để kiểm tra đặt bàn mới
     const pollingInterval = setInterval(async () => {
       try {
-        const newReservationsResponse = await axios.get('/api/reservations/pending');
-        const newPendingReservations = newReservationsResponse.data;
+        const bookingsData = await bookingService.getAllBookings();
+        const newPendingReservations = bookingsData.filter(booking => booking.status === 'pending');
         
         if (newPendingReservations.length > pendingReservations.length) {
           setPendingReservations(newPendingReservations);
@@ -194,7 +92,6 @@ const TableManagement = () => {
     }, 60000); // Check mỗi phút
     
     return () => clearInterval(pollingInterval);
-    */
   }, []);
 
   // Lọc bàn phù hợp cho đặt bàn
@@ -217,11 +114,12 @@ const TableManagement = () => {
     let filtered = tables;
     
     if (searchTerm) {
-      filtered = filtered.filter(table =>
-        table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        table.id.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  filtered = filtered.filter(table =>
+    table.table_number?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    table.id?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  );
+}
+
     
     if (filterStatus !== 'all') {
       filtered = filtered.filter(table => table.status === filterStatus);
@@ -245,7 +143,7 @@ const TableManagement = () => {
   };
 
   // Xử lý xem chi tiết đặt bàn
-  const handleViewReservationDetail = (reservation: Reservation) => {
+  const handleViewReservationDetail = (reservation: Booking) => {
     setSelectedReservation(reservation);
     setIsReservationDetailOpen(true);
   };
@@ -255,114 +153,11 @@ const TableManagement = () => {
     setSelectedTableForReservation(e.target.value);
   };
 
-  // Xử lý xác nhận đặt bàn
-  const handleConfirmReservation = async (reservationId: string, tableId: string) => {
-    try {
-      // Trong thực tế, bạn sẽ gọi API
-      /*
-      await axios.put(`/api/reservations/${reservationId}/confirm`, { tableId });
-      */
-      
-      // Update reservation status
-     const updatedReservations = reservations.map(res =>
-        res.id === reservationId
-            ? { ...res, status: 'confirmed' as const, tableId }
-            : res
-      );
-      setReservations(updatedReservations);
-      
-      // Update pending reservations
-      const newPendingReservations = pendingReservations.filter(res => res.id !== reservationId);
-      setPendingReservations(newPendingReservations);
-      
-      // Update table status
-      const updatedTables = tables.map(table =>
-        table.id === tableId
-            ? { ...table, status: 'reserved' as const }
-            : table
-      );
-      setTables(updatedTables);
-      
-      showToastMessage('Đã xác nhận đặt bàn thành công', 'success');
-      
-      // Close details modal if open
-      if (isReservationDetailOpen) {
-        setIsReservationDetailOpen(false);
-      }
-    } catch (error) {
-      console.error('Error confirming reservation:', error);
-      showToastMessage('Không thể xác nhận đặt bàn. Vui lòng thử lại.', 'error');
-    }
-  };
-
-  // Xử lý từ chối đặt bàn
-  const handleRejectReservation = async (reservationId: string) => {
-    try {
-      // Trong thực tế, bạn sẽ gọi API
-      /*
-      await axios.put(`/api/reservations/${reservationId}/cancel`);
-      */
-      
-      // Update reservation status
-      const updatedReservations = reservations.map(res =>
-        res.id === reservationId
-          ? { ...res, status: 'cancelled' as const }
-          : res
-      );
-      setReservations(updatedReservations);
-      
-      // Update pending reservations
-      const newPendingReservations = pendingReservations.filter(res => res.id !== reservationId);
-      setPendingReservations(newPendingReservations);
-      
-      showToastMessage('Đã từ chối đặt bàn', 'info');
-      
-      // Close details modal if open
-      if (isReservationDetailOpen) {
-        setIsReservationDetailOpen(false);
-      }
-    } catch (error) {
-      console.error('Error rejecting reservation:', error);
-      showToastMessage('Không thể từ chối đặt bàn. Vui lòng thử lại.', 'error');
-    }
-  };
-
-  // Xử lý form change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear errors khi người dùng nhập lại
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = {...prev};
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  };
-
-  // Validate form
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.name || formData.name.trim() === '') {
-      newErrors.name = 'Vui lòng nhập tên bàn';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Xử lý thêm bàn mới
   const handleAddTable = () => {
     setIsEditing(false);
     setFormData({
-      id: '',
-      name: '',
+      table_number: '',
       status: 'available'
     });
     setIsFormOpen(true);
@@ -373,62 +168,101 @@ const TableManagement = () => {
     setIsEditing(true);
     setCurrentTable(table);
     setFormData({
-      id: table.id,
-      name: table.name,
+      table_number: table.table_number,
       status: table.status
     });
     setIsFormOpen(true);
   };
 
   // Xử lý thay đổi trạng thái bàn
-  const handleStatusChange = (tableId: string, newStatus: 'available' | 'reserved' | 'occupied') => {
-    setTables(prev =>
-      prev.map(table =>
-        table.id === tableId ? { ...table, status: newStatus } : table
-      )
-    );
-    showToastMessage(`Đã cập nhật trạng thái bàn thành ${
-      newStatus === 'available' ? 'Trống' :
-      newStatus === 'reserved' ? 'Đã đặt' : 'Đang sử dụng'
-    }`);
+  const handleStatusChange = async (tableId: string, newStatus: 'available' | 'reserved' | 'occupied') => {
+    try {
+      const table = tables.find(t => t.id === tableId);
+      if (!table) return;
+      
+      const updatedTable = await tableService.updateTable(tableId, { 
+        table_number: table.table_number,
+        status: newStatus 
+      });
+      setTables(prev =>
+        prev.map(table =>
+          table.id === tableId ? updatedTable : table
+        )
+      );
+      showToastMessage(`Đã cập nhật trạng thái bàn thành ${
+        newStatus === 'available' ? 'Trống' :
+        newStatus === 'reserved' ? 'Đã đặt' : 'Đang sử dụng'
+      }`);
+    } catch (error) {
+      console.error('Error updating table status:', error);
+      showToastMessage('Không thể cập nhật trạng thái bàn', 'error');
+    }
   };
 
   // Xử lý xóa bàn
-  const handleDeleteTable = (tableId: string) => {
+  const handleDeleteTable = async (tableId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
-      setTables(prev => prev.filter(table => table.id !== tableId));
-      showToastMessage('Đã xóa bàn thành công');
+      try {
+        await tableService.deleteTable(tableId);
+        setTables(prev => prev.filter(table => table.id !== tableId));
+        showToastMessage('Đã xóa bàn thành công');
+      } catch (error) {
+        console.error('Error deleting table:', error);
+        showToastMessage('Không thể xóa bàn', 'error');
+      }
     }
   };
 
   // Xử lý submit form
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      if (isEditing && currentTable) {
-        // Update existing table
-        setTables(prev =>
-          prev.map(table =>
-            table.id === currentTable.id ? { ...formData as Table } : table
-          )
-        );
-        showToastMessage('Cập nhật bàn thành công');
-      } else {
-        // Add new table
-        const newId = (Math.max(...tables.map(t => parseInt(t.id)), 0) + 1).toString();
-        const newTable: Table = {
-          ...formData,
-          id: newId
-        } as Table;
+      try {
+        if (isEditing && currentTable) {
+          // Update existing table
+          const updatedTable = await tableService.updateTable(currentTable.id, formData);
+          setTables(prev =>
+            prev.map(table =>
+              table.id === currentTable.id ? updatedTable : table
+            )
+          );
+          showToastMessage('Cập nhật bàn thành công');
+        } else {
+          // Add new table
+          const newTable = await tableService.createTable(formData);
+          setTables(prev => [...prev, newTable]);
+          showToastMessage('Thêm bàn mới thành công');
+        }
         
-        setTables(prev => [...prev, newTable]);
-        showToastMessage('Thêm bàn mới thành công');
+        setIsFormOpen(false);
+        setCurrentTable(null);
+      } catch (error) {
+        console.error('Error saving table:', error);
+        showToastMessage('Không thể lưu thông tin bàn', 'error');
       }
-      
-      setIsFormOpen(false);
-      setCurrentTable(null);
     }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.table_number.trim()) {
+      newErrors.table_number = 'Vui lòng nhập số bàn';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Render status badge with appropriate color
@@ -520,16 +354,25 @@ const TableManagement = () => {
       
       {!showReservations ? (
         <div className="tables-grid">
-          {filteredTables.length > 0 ? (
+          {isLoading ? (
+            <div style={{ gridColumn: '1 / -1', width: '100%' }}>
+              <LoadingSpinner loadingText="Đang tải danh sách bàn..." showDots={true} />
+            </div>
+          ) : filteredTables.length > 0 ? (
             filteredTables.map(table => (
               <div key={table.id} className={`table-card ${table.status}`}>
                 <div className="table-card-header">
-                  <h3>{table.name}</h3>
+                  <h3>Bàn {table.table_number}</h3>
                   {renderStatusBadge(table.status)}
                 </div>
                 
                 <div className="table-card-content">
                   <p><strong>Mã bàn:</strong> {table.id}</p>
+                  {table.qr_code && (
+                    <div className="qr-code">
+                      <img src={table.qr_code} alt={`QR Code for Table ${table.table_number}`} />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="table-card-actions">
@@ -596,11 +439,14 @@ const TableManagement = () => {
                   {pendingReservations.map(reservation => (
                     <tr key={reservation.id}>
                       <td>{reservation.id}</td>
-                      <td>{formatDate(reservation.date)}</td>
+                      <td>{formatDate(reservation.booking_date)}</td>
                       <td>{formatTime(reservation.time)}</td>
-                      <td>{reservation.guests}</td>
+                      <td>{reservation.guests} người</td>
                       <td>{reservation.name}</td>
-                      <td>{reservation.phone}</td>
+                      <td>
+                        <div>📞 {reservation.phone}</div>
+                        <div>✉️ {reservation.email}</div>
+                      </td>
                       <td>{formatDateTime(reservation.createdAt)}</td>
                       <td>
                         <div className="table-row-actions">
@@ -608,7 +454,7 @@ const TableManagement = () => {
                             className="view-btn"
                             onClick={() => handleViewReservationDetail(reservation)}
                           >
-                            Chi tiết
+                            Xem chi tiết
                           </button>
                         </div>
                       </td>
@@ -635,16 +481,16 @@ const TableManagement = () => {
             
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="name">Tên bàn <span className="required">*</span></label>
+                <label htmlFor="table_number">Số bàn <span className="required">*</span></label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="table_number"
+                  name="table_number"
+                  value={formData.table_number}
                   onChange={handleInputChange}
-                  className={errors.name ? 'error' : ''}
+                  className={errors.table_number ? 'error' : ''}
                 />
-                {errors.name && <div className="error-message">{errors.name}</div>}
+                {errors.table_number && <div className="error-message">{errors.table_number}</div>}
               </div>
               
               <div className="form-group">
@@ -678,34 +524,25 @@ const TableManagement = () => {
         <div className="reservation-detail-overlay">
           <div className="reservation-detail-container">
             <div className="detail-header">
-              <h2>Chi tiết đặt bàn #{selectedReservation.id}</h2>
-              <button
-                className="close-btn"
-                onClick={() => setIsReservationDetailOpen(false)}
-              >
-                ×
-              </button>
+              <h2>Chi tiết đặt bàn</h2>
+              <button className="close-btn" onClick={() => setIsReservationDetailOpen(false)}>×</button>
             </div>
             
-            <div className="reservation-details">
+            <div className="detail-content">
               <div className="detail-section">
                 <h3>Thông tin đặt bàn</h3>
                 <div className="detail-grid">
                   <div className="detail-item">
                     <span className="detail-label">Ngày đặt:</span>
-                    <span className="detail-value">{formatDate(selectedReservation.date)}</span>
+                    <span className="detail-value">{formatDate(selectedReservation.booking_date)}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Thời gian:</span>
-                    <span className="detail-value">{selectedReservation.time}</span>
+                    <span className="detail-label">Giờ đặt:</span>
+                    <span className="detail-value">{formatTime(selectedReservation.time)}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Số lượng khách:</span>
+                    <span className="detail-label">Số khách:</span>
                     <span className="detail-value">{selectedReservation.guests} người</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Thời gian đặt:</span>
-                    <span className="detail-value">{formatDateTime(selectedReservation.createdAt)}</span>
                   </div>
                 </div>
               </div>
@@ -754,8 +591,7 @@ const TableManagement = () => {
               </div>
               
               <div className="detail-section">
-                <h3>Xử lý đặt bàn</h3>
-                
+                <h3>Xác nhận đặt bàn</h3>
                 <div className="table-selection">
                   <label htmlFor="table-select">Chọn bàn:</label>
                   <select
@@ -766,32 +602,52 @@ const TableManagement = () => {
                     <option value="">-- Chọn bàn --</option>
                     {availableTablesForReservation.map(table => (
                       <option key={table.id} value={table.id}>
-                        {table.name} (Mã bàn: {table.id})
+                        Bàn {table.table_number}
                       </option>
                     ))}
                   </select>
-                  
-                  {availableTablesForReservation.length === 0 && (
-                    <div className="warning-message">
-                      <p>Không có bàn trống phù hợp với số lượng khách!</p>
-                    </div>
-                  )}
                 </div>
                 
-                <div className="action-buttons">
+                <div className="confirmation-actions">
                   <button
-                    className="reject-btn"
-                    onClick={() => handleRejectReservation(selectedReservation.id)}
+                    className="confirm-btn"
+                    onClick={async () => {
+                      try {
+                        await bookingService.updateBookingStatus(selectedReservation.id, 'confirmed');
+                        showToastMessage('Đã xác nhận đặt bàn thành công');
+                        setIsReservationDetailOpen(false);
+                        // Refresh data
+                        const bookingsData = await bookingService.getAllBookings();
+                        setReservations(bookingsData);
+                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
+                      } catch (error) {
+                        console.error('Error confirming booking:', error);
+                        showToastMessage('Không thể xác nhận đặt bàn', 'error');
+                      }
+                    }}
+                    disabled={!selectedTableForReservation}
                   >
-                    <FaTimes /> Từ chối đặt bàn
+                    <FaCheck /> Xác nhận
                   </button>
                   
                   <button
-                    className="confirm-btn"
-                    disabled={!selectedTableForReservation}
-                    onClick={() => handleConfirmReservation(selectedReservation.id, selectedTableForReservation)}
+                    className="cancel-btn"
+                    onClick={async () => {
+                      try {
+                        await bookingService.updateBookingStatus(selectedReservation.id, 'cancelled');
+                        showToastMessage('Đã hủy đặt bàn');
+                        setIsReservationDetailOpen(false);
+                        // Refresh data
+                        const bookingsData = await bookingService.getAllBookings();
+                        setReservations(bookingsData);
+                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
+                      } catch (error) {
+                        console.error('Error cancelling booking:', error);
+                        showToastMessage('Không thể hủy đặt bàn', 'error');
+                      }
+                    }}
                   >
-                    <FaCheck /> Xác nhận đặt bàn
+                    <FaTimes /> Hủy đặt bàn
                   </button>
                 </div>
               </div>
@@ -812,392 +668,3 @@ const TableManagement = () => {
 };
 
 export default TableManagement;
-
-// import { useState, useEffect } from 'react';
-// import { FaPlus, FaEdit, FaTrash, FaSearch, FaCheck, FaTimes, FaCalendarAlt } from 'react-icons/fa';
-// import './TableManagement.scss';
-// import { Toast } from '../Toast/Toast';
-
-// interface Table {
-//   id: string;
-//   name: string;
-//   status: 'available' | 'reserved' | 'occupied';
-//   qrCodeUrl?: string;
-// }
-
-// interface Reservation {
-//   id: string;
-//   date: string;
-//   time: string;
-//   guests: number;
-//   name: string;
-//   phone: string;
-//   email: string;
-//   notes: string;
-//   withChildren: boolean;
-//   birthday: boolean;
-//   window: boolean;
-//   childrenChair: boolean;
-//   status: 'pending' | 'confirmed' | 'cancelled';
-//   tableId?: string;
-//   createdAt: string;
-// }
-
-// const TableManagement = () => {
-//   const [tables, setTables] = useState<Table[]>([]);
-//   const [filteredTables, setFilteredTables] = useState<Table[]>([]);
-//   const [isFormOpen, setIsFormOpen] = useState(false);
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [currentTable, setCurrentTable] = useState<Table | null>(null);
-//   const [formData, setFormData] = useState({
-//     id: '',
-//     name: '',
-//     status: 'available'
-//   });
-//   const [errors, setErrors] = useState<Record<string, string>>({});
-//   const [showToast, setShowToast] = useState(false);
-//   const [toastMessage, setToastMessage] = useState('');
-//   const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [filterStatus, setFilterStatus] = useState('all');
-
-//   const [reservations, setReservations] = useState<Reservation[]>([]);
-//   const [pendingReservations, setPendingReservations] = useState<Reservation[]>([]);
-//   const [showReservations, setShowReservations] = useState(false);
-//   const [hasNewReservations, setHasNewReservations] = useState(false);
-
-//   useEffect(() => {
-//     const mockTables: Table[] = [
-//       { id: '1', name: 'Bàn 1', status: 'available' },
-//       { id: '2', name: 'Bàn 2', status: 'available' },
-//       { id: '3', name: 'Bàn 3', status: 'occupied' },
-//       { id: '4', name: 'Bàn VIP 1', status: 'available' },
-//     ];
-//     setTables(mockTables);
-//     setFilteredTables(mockTables);
-
-//     const mockReservations: Reservation[] = [
-//       {
-//         id: '1',
-//         date: '2025-04-10',
-//         time: '18:30',
-//         guests: 4,
-//         name: 'Nguyễn Văn A',
-//         phone: '0912345678',
-//         email: 'nguyenvana@gmail.com',
-//         notes: 'Mong muốn có ghế cao cho trẻ nhỏ',
-//         withChildren: true,
-//         birthday: false,
-//         window: true,
-//         childrenChair: true,
-//         status: 'pending',
-//         createdAt: '2025-04-09T09:15:23'
-//       },
-//       {
-//         id: '2',
-//         date: '2025-04-10',
-//         time: '19:00',
-//         guests: 6,
-//         name: 'Trần Thị B',
-//         phone: '0387654321',
-//         email: 'tranthib@gmail.com',
-//         notes: 'Đặt bàn sinh nhật, cần chuẩn bị bánh kem',
-//         withChildren: false,
-//         birthday: true,
-//         window: false,
-//         childrenChair: false,
-//         status: 'pending',
-//         createdAt: '2025-04-09T10:22:45'
-//       }
-//     ];
-//     setReservations(mockReservations);
-//     const pending = mockReservations.filter(res => res.status === 'pending');
-//     setPendingReservations(pending);
-//     if (pending.length > 0) setHasNewReservations(true);
-//   }, []);
-
-//   const showToastMessage = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
-//     setToastMessage(message);
-//     setToastType(type);
-//     setShowToast(true);
-//     setTimeout(() => setShowToast(false), 3000);
-//   };
-
-//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({
-//       ...prev,
-//       [name]: value
-//     }));
-//     if (errors[name]) {
-//       setErrors(prev => {
-//         const newErrors = { ...prev };
-//         delete newErrors[name];
-//         return newErrors;
-//       });
-//     }
-//   };
-
-//   const validateForm = (): boolean => {
-//     const newErrors: Record<string, string> = {};
-//     if (!formData.name || formData.name.trim() === '') {
-//       newErrors.name = 'Vui lòng nhập tên bàn';
-//     }
-//     setErrors(newErrors);
-//     return Object.keys(newErrors).length === 0;
-//   };
-
-//   const handleAddTable = () => {
-//     setIsEditing(false);
-//     setFormData({ id: '', name: '', status: 'available' });
-//     setIsFormOpen(true);
-//   };
-
-//   const handleEditTable = (table: Table) => {
-//     setIsEditing(true);
-//     setCurrentTable(table);
-//     setFormData({ id: table.id, name: table.name, status: table.status });
-//     setIsFormOpen(true);
-//   };
-
-//   const handleStatusChange = (tableId: string, newStatus: 'available' | 'reserved' | 'occupied') => {
-//     setTables(prev =>
-//       prev.map(table =>
-//         table.id === tableId ? { ...table, status: newStatus } : table
-//       )
-//     );
-//     showToastMessage(`Đã cập nhật trạng thái bàn thành ${newStatus}`);
-//   };
-
-//   const handleDeleteTable = (tableId: string) => {
-//     if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
-//       setTables(prev => prev.filter(table => table.id !== tableId));
-//       showToastMessage('Đã xóa bàn thành công');
-//     }
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (validateForm()) {
-//       if (isEditing && currentTable) {
-//         setTables(prev =>
-//           prev.map(table =>
-//             table.id === currentTable.id ? ({ ...formData } as Table) : table
-//           )
-//         );
-//         showToastMessage('Cập nhật bàn thành công');
-//       } else {
-//         const newId = (Math.max(...tables.map(t => parseInt(t.id)), 0) + 1).toString();
-//         const newTable: Table = { ...formData, id: newId } as Table;
-//         setTables(prev => [...prev, newTable]);
-//         showToastMessage('Thêm bàn mới thành công');
-//       }
-//       setIsFormOpen(false);
-//       setCurrentTable(null);
-//     }
-//   };
-
-//   const renderStatusBadge = (status: string) => {
-//     let badgeClass = '';
-//     let statusText = '';
-//     switch (status) {
-//       case 'available': badgeClass = 'status-available'; statusText = 'Trống'; break;
-//       case 'reserved': badgeClass = 'status-reserved'; statusText = 'Đã đặt'; break;
-//       case 'occupied': badgeClass = 'status-occupied'; statusText = 'Đang sử dụng'; break;
-//       default: statusText = status;
-//     }
-//     return <span className={`status-badge ${badgeClass}`}>{statusText}</span>;
-//   };
-
-//   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('vi-VN');
-//   const formatTime = (timeStr: string) => timeStr;
-//   const formatDateTime = (dateTimeStr: string) => new Date(dateTimeStr).toLocaleString('vi-VN');
-
-//   return (
-//     <div className="table-management">
-//       <div className="table-management-header">
-//         <div className="search-filter-container">
-//           <div className="search-box">
-//             <FaSearch className="search-icon" />
-//             <input
-//               type="text"
-//               placeholder="Tìm kiếm bàn..."
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//             />
-//           </div>
-//           <div className="filter-box">
-//             <label htmlFor="status-filter">Lọc theo trạng thái:</label>
-//             <select
-//               id="status-filter"
-//               value={filterStatus}
-//               onChange={(e) => setFilterStatus(e.target.value)}
-//             >
-//               <option value="all">Tất cả</option>
-//               <option value="available">Trống</option>
-//               <option value="reserved">Đã đặt</option>
-//               <option value="occupied">Đang sử dụng</option>
-//             </select>
-//           </div>
-//         </div>
-//         <div className="action-buttons">
-//           <button
-//             className={`reservations-btn ${hasNewReservations ? 'has-new' : ''}`}
-//             onClick={() => setShowReservations(true)}
-//           >
-//             <FaCalendarAlt /> Đặt bàn
-//             {hasNewReservations && <span className="notification-badge">{pendingReservations.length}</span>}
-//           </button>
-//           <button className="add-table-btn" onClick={handleAddTable}>
-//             <FaPlus /> Thêm bàn mới
-//           </button>
-//         </div>
-//       </div>
-
-//       {!showReservations ? (
-//         <div className="tables-grid">
-//           {filteredTables.length > 0 ? (
-//             filteredTables.map(table => (
-//               <div key={table.id} className={`table-card ${table.status}`}>
-//                 <div className="table-card-header">
-//                   <h3>{table.name}</h3>
-//                   {renderStatusBadge(table.status)}
-//                 </div>
-//                 <div className="table-card-content">
-//                   <p><strong>Mã bàn:</strong> {table.id}</p>
-//                 </div>
-//                 <div className="table-card-actions">
-//                   <div className="status-actions">
-//                     <label>Trạng thái:</label>
-//                     <select
-//                       value={table.status}
-//                       onChange={(e) => handleStatusChange(table.id, e.target.value as Table['status'])}
-//                     >
-//                       <option value="available">Trống</option>
-//                       <option value="reserved">Đã đặt</option>
-//                       <option value="occupied">Đang sử dụng</option>
-//                     </select>
-//                   </div>
-//                   <div className="card-buttons">
-//                     <button className="edit-btn" onClick={() => handleEditTable(table)}>
-//                       <FaEdit /> Sửa
-//                     </button>
-//                     <button className="delete-btn" onClick={() => handleDeleteTable(table.id)}>
-//                       <FaTrash /> Xóa
-//                     </button>
-//                   </div>
-//                 </div>
-//               </div>
-//             ))
-//           ) : (
-//             <div className="no-tables-message">
-//               <p>Không tìm thấy bàn nào</p>
-//             </div>
-//           )}
-//         </div>
-//       ) : (
-//         <div className="reservations-section">
-//           <div className="reservations-header">
-//             <h2>Danh sách đặt bàn đang chờ xác nhận ({pendingReservations.length})</h2>
-//             <button
-//               className="back-btn"
-//               onClick={() => setShowReservations(false)}
-//             >
-//               Quay lại quản lý bàn
-//             </button>
-//           </div>
-//           <div className="reservations-list">
-//             {pendingReservations.length > 0 ? (
-//               <table className="reservations-table">
-//                 <thead>
-//                   <tr>
-//                     <th>ID</th>
-//                     <th>Ngày</th>
-//                     <th>Giờ</th>
-//                     <th>Khách</th>
-//                     <th>Khách hàng</th>
-//                     <th>Liên hệ</th>
-//                     <th>Thời gian đặt</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody>
-//                   {pendingReservations.map(res => (
-//                     <tr key={res.id}>
-//                       <td>{res.id}</td>
-//                       <td>{formatDate(res.date)}</td>
-//                       <td>{formatTime(res.time)}</td>
-//                       <td>{res.guests}</td>
-//                       <td>{res.name}</td>
-//                       <td>{res.phone}</td>
-//                       <td>{formatDateTime(res.createdAt)}</td>
-//                     </tr>
-//                   ))}
-//                 </tbody>
-//               </table>
-//             ) : (
-//               <div className="no-reservations-message">
-//                 <p>Không có đặt bàn nào đang chờ</p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       )}
-
-//       {isFormOpen && (
-//         <div className="table-form-overlay">
-//           <div className="table-form-container">
-//             <div className="form-header">
-//               <h2>{isEditing ? 'Cập nhật thông tin bàn' : 'Thêm bàn mới'}</h2>
-//               <button className="close-btn" onClick={() => setIsFormOpen(false)}>×</button>
-//             </div>
-//             <form onSubmit={handleSubmit}>
-//               <div className="form-group">
-//                 <label htmlFor="name">Tên bàn <span className="required">*</span></label>
-//                 <input
-//                   type="text"
-//                   id="name"
-//                   name="name"
-//                   value={formData.name}
-//                   onChange={handleInputChange}
-//                   className={errors.name ? 'error' : ''}
-//                 />
-//                 {errors.name && <div className="error-message">{errors.name}</div>}
-//               </div>
-//               <div className="form-group">
-//                 <label htmlFor="status">Trạng thái</label>
-//                 <select
-//                   id="status"
-//                   name="status"
-//                   value={formData.status}
-//                   onChange={handleInputChange}
-//                 >
-//                   <option value="available">Trống</option>
-//                   <option value="reserved">Đã đặt</option>
-//                   <option value="occupied">Đang sử dụng</option>
-//                 </select>
-//               </div>
-//               <div className="form-actions">
-//                 <button type="button" className="cancel-btn" onClick={() => setIsFormOpen(false)}>
-//                   Hủy
-//                 </button>
-//                 <button type="submit" className="submit-btn">
-//                   {isEditing ? 'Cập nhật' : 'Thêm mới'}
-//                 </button>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-
-//       {showToast && (
-//         <Toast
-//           message={toastMessage}
-//           type={toastType}
-//           onClose={() => setShowToast(false)}
-//         />
-//       )}
-//     </div>
-//   );
-// };
-
-// export default TableManagement;

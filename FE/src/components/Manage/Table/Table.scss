@@ -132,6 +132,15 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: var(--spacing-lg);
+        min-height: 200px;
+
+        .loading-spinner-container {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
 
         .table-card {
             border: 1px solid var(--gray);
@@ -202,6 +211,20 @@
                     margin: var(--spacing-xs) 0;
                     font-size: 0.875rem;
                     color: var(--light-text);
+                }
+
+                .qr-code {
+                    margin-top: var(--spacing-sm);
+                    text-align: center;
+
+                    img {
+                        max-width: 150px;
+                        height: auto;
+                        border: 1px solid var(--gray);
+                        border-radius: var(--border-radius-sm);
+                        padding: var(--spacing-xs);
+                        background-color: var(--white);
+                    }
                 }
             }
 
@@ -468,12 +491,6 @@
                             border-color: var(--red);
                         }
                     }
-
-                    .error-message {
-                        margin-top: var(--spacing-xs);
-                        color: var(--red);
-                        font-size: 0.75rem;
-                    }
                 }
 
                 .form-actions {
@@ -673,12 +690,6 @@
                                 outline: none;
                                 border-color: var(--primary-color);
                             }
-                        }
-
-                        .warning-message {
-                            margin-top: var(--spacing-xs);
-                            color: var(--red);
-                            font-size: 0.75rem;
                         }
                     }
 
