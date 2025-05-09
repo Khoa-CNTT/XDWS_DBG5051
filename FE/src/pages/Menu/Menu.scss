@@ -366,16 +366,21 @@
                         color: var(--primary-color);
                     }
 
-                    .popular-badge {
-                        position: absolute;
-                        top: 15px;
-                        right: 15px;
+                    .add-to-cart-btn {
+                        width: 100%;
+                        padding: 0.8rem;
                         background-color: var(--primary-color);
-                        color: var(--white);
-                        font-size: 12px;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
                         font-weight: 500;
-                        padding: 3px 8px;
-                        border-radius: var(--border-radius-sm);
+                        transition: background-color 0.3s ease;
+                        margin-top: 10px;
+
+                        &:hover {
+                            background-color: var(--primary-dark);
+                        }
                     }
                 }
             }

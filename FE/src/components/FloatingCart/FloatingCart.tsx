@@ -7,15 +7,10 @@ interface FloatingCartProps {
 }
 
 const FloatingCart = ({ itemCount, onCartClick }: FloatingCartProps) => {
-  const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const prevItemCountRef = useRef(itemCount);
 
   useEffect(() => {
-    if (itemCount > 0 && !isVisible) {
-      setIsVisible(true);
-    }
-
     if (itemCount > prevItemCountRef.current) {
       setIsAnimating(true);
       const timer = setTimeout(() => {
@@ -26,11 +21,7 @@ const FloatingCart = ({ itemCount, onCartClick }: FloatingCartProps) => {
     }
 
     prevItemCountRef.current = itemCount;
-  }, [itemCount, isVisible]);
-
-  if (!isVisible && itemCount === 0) {
-    return null;
-  }
+  }, [itemCount]);
 
   return (
     <div

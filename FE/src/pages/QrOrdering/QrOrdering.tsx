@@ -1,103 +1,27 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import menuItems, { categoryOrder, MenuItem } from '../../data/menuData';
-import { useOrders, OrderItem } from '../../context/OrderContext';
-import { useAuth } from '../../context/AuthContext';
 import FloatingCart from '../../components/FloatingCart/FloatingCart';
 import { Toast } from '../../components/Toast/Toast';
+import LoadingSpinner from '../../components/Loading/LoadingSpinner';
+import { qrOrderService, MenuItem, CartItem } from '../../services/qrOrderService';
 import './QrOrdering.scss';
 
 const QrOrdering = () => {
-  // Use proper type for useParams
   const { tableId } = useParams<{ tableId?: string }>();
-  const [cart, setCart] = useState<OrderItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [note, setNote] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('popular');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderStatus, setOrderStatus] = useState<string | null>(null);
   const [showCartSection, setShowCartSection] = useState(false);
   const [showAddedAnimation, setShowAddedAnimation] = useState<number | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const cartSectionRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  // Get order functions from context
-  const {
-    addOrder,
-    getActiveOrderForTable,
-    orders
-  } = useOrders();
-
-  // Get auth functions
-  const { isAuthenticated, currentUser, updateUserOrders } = useAuth();
-
-  // Memoize the grouped menu items
-  const groupedMenu = useMemo(() => {
-    const grouped: Record<string, MenuItem[]> = {};
-
-    menuItems.forEach(item => {
-      if (!grouped[item.category]) {
-        grouped[item.category] = [];
-      }
-      grouped[item.category].push(item);
-    });
-
-    return grouped;
-  }, []);
-
-  // Memoize popular items
-  const popularItems = useMemo(() => {
-    return menuItems.filter(item => item.popular);
-  }, []);
-  
-  // Categories array
-  const categories = useMemo(() => ['popular', ...categoryOrder], []);
-
-  // State to display items based on selected category
-  const [displayedItems, setDisplayedItems] = useState<MenuItem[]>([]);
-
-  // Check for active order when component mounts
-  useEffect(() => {
-    if (tableId) {
-      try {
-        const activeOrder = getActiveOrderForTable(tableId);
-        if (activeOrder) {
-          // Store the active order ID and status
-          setOrderStatus(activeOrder.status);
-          setOrderPlaced(true);
-
-          // Set cart items from the active order for display
-          setCart(activeOrder.items);
-          setNote(activeOrder.note || '');
-        }
-      } catch (error) {
-        console.error("Error fetching active order:", error);
-        showToastMessage("Không thể tải thông tin đơn hàng hiện tại");
-      }
-    }
-  }, [tableId, getActiveOrderForTable, orders]);
-
-  // Update displayed items when category changes
-  useEffect(() => {
-    try {
-      if (selectedCategory === 'popular') {
-        setDisplayedItems(popularItems);
-      } else {
-        setDisplayedItems(groupedMenu[selectedCategory] || []);
-      }
-    } catch (error) {
-      console.error("Error updating displayed items:", error);
-      setDisplayedItems([]);
-    }
-  }, [selectedCategory, groupedMenu, popularItems]);
-
-  // Scroll to cart section when it becomes visible
-  useEffect(() => {
-    if (showCartSection && cartSectionRef.current) {
-      cartSectionRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [showCartSection]);
 
   // Show toast message helper
   const showToastMessage = useCallback((message: string) => {
@@ -106,85 +30,214 @@ const QrOrdering = () => {
     setTimeout(() => setShowToast(false), 3000);
   }, []);
 
+  // Fetch menu data
+  useEffect(() => {
+    const fetchMenuData = async () => {
+      try {
+        setLoading(true);
+        const [menuData, categoryData] = await Promise.all([
+          qrOrderService.getMenuItems(),
+          qrOrderService.getCategories()
+        ]);
+
+        if (Array.isArray(menuData) && Array.isArray(categoryData)) {
+          setMenuItems(menuData);
+          setCategories(['all', 'popular', ...categoryData.map(cat => cat.name)]);
+        } else {
+          throw new Error('Dữ liệu menu không đúng định dạng');
+        }
+      } catch (error) {
+        console.error("Error fetching menu:", error);
+        showToastMessage("Không thể tải thực đơn");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenuData();
+  }, [showToastMessage]);
+
+  // Fetch cart data
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!tableId) return;
+      
+      try {
+        // Kiểm tra trạng thái bàn trước
+        const tableStatus = await qrOrderService.checkTableStatus(parseInt(tableId));
+        console.log('Table status:', tableStatus);
+        
+        if (tableStatus.status !== 'available') {
+          showToastMessage(`Bàn ${tableId} không khả dụng. Vui lòng chọn bàn khác.`);
+          return;
+        }
+
+        console.log('Fetching cart for table:', tableId);
+        const cartData = await qrOrderService.getCart(parseInt(tableId));
+        console.log('Cart data:', cartData);
+        
+        if (Array.isArray(cartData)) {
+          console.log('Setting cart with data:', cartData);
+          setCart(cartData);
+        } else {
+          console.error('Invalid cart data format:', cartData);
+          setCart([]);
+        }
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+        showToastMessage("Không thể tải giỏ hàng");
+        setCart([]);
+      }
+    };
+
+    fetchCart();
+  }, [tableId, showToastMessage]);
+
+  // Filter menu items based on selected category
+  const filteredMenuItems = useCallback(() => {
+    if (selectedCategory === 'all') {
+      return menuItems;
+    }
+    if (selectedCategory === 'popular') {
+      return menuItems.filter(item => item.popular);
+    }
+    return menuItems.filter(item => item.category.name === selectedCategory);
+  }, [menuItems, selectedCategory]);
+
   // Add to cart handler
-  const addToCart = useCallback((item: MenuItem) => {
-    if (orderPlaced) return; // Don't allow adding to cart if order is already placed
+  const addToCart = useCallback(async (menuId: number) => {
+    if (orderPlaced || !tableId) return;
 
-    setCart(prevCart => {
-      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
-
-      if (existingItem) {
-        return prevCart.map(cartItem =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
+    try {
+      // Kiểm tra trạng thái bàn trước
+      const tableStatus = await qrOrderService.checkTableStatus(parseInt(tableId));
+      console.log('Table status:', tableStatus);
+      
+      if (tableStatus.status !== 'available') {
+        showToastMessage(`Bàn ${tableId} không khả dụng. Vui lòng chọn bàn khác.`);
+        return;
       }
 
-      return [...prevCart, { ...item, quantity: 1 }];
-    });
-
-    // Show animation feedback
-    setShowAddedAnimation(item.id);
-    setTimeout(() => setShowAddedAnimation(null), 500);
-  }, [orderPlaced]);
+      console.log('Adding item to cart:', { menuId, tableId });
+      const response = await qrOrderService.increaseCartItem(menuId, parseInt(tableId));
+      console.log('Increase cart response:', response);
+      
+      if (response.status === 'success') {
+        // Sau khi tăng số lượng thành công, lấy lại giỏ hàng mới
+        const cartData = await qrOrderService.getCart(parseInt(tableId));
+        console.log('Updated cart data:', cartData);
+        
+        if (Array.isArray(cartData)) {
+          console.log('Setting cart with updated data:', cartData);
+          setCart(cartData);
+          setShowAddedAnimation(menuId);
+          setTimeout(() => setShowAddedAnimation(null), 500);
+        } else {
+          console.error('Invalid cart data format:', cartData);
+          showToastMessage("Lỗi khi cập nhật giỏ hàng");
+        }
+      } else {
+        console.error('Failed to add item to cart:', response);
+        showToastMessage("Không thể thêm món vào giỏ hàng");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showToastMessage("Không thể thêm món vào giỏ hàng");
+    }
+  }, [orderPlaced, tableId, showToastMessage]);
 
   // Remove from cart handler
-  const removeFromCart = useCallback((id: number) => {
-    if (orderPlaced) return; // Don't allow removing from cart if order is already placed
+  const removeFromCart = useCallback(async (menuId: number) => {
+    if (orderPlaced || !tableId) return;
 
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === id);
-
-      if (existingItem && existingItem.quantity > 1) {
-        return prevCart.map(item =>
-          item.id === id
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        );
+    try {
+      console.log('Removing item from cart:', { menuId, tableId });
+      const response = await qrOrderService.decreaseCartItem(menuId, parseInt(tableId));
+      console.log('Decrease cart response:', response);
+      
+      if (response.status === 'success') {
+        // Sau khi giảm số lượng thành công, lấy lại giỏ hàng mới
+        const cartData = await qrOrderService.getCart(parseInt(tableId));
+        console.log('Updated cart data:', cartData);
+        
+        if (Array.isArray(cartData)) {
+          console.log('Setting cart with updated data:', cartData);
+          setCart(cartData);
+        } else {
+          console.error('Invalid cart data format:', cartData);
+          showToastMessage("Lỗi khi cập nhật giỏ hàng");
+        }
+      } else {
+        console.error('Failed to remove item from cart:', response);
+        showToastMessage("Không thể xóa món khỏi giỏ hàng");
       }
-
-      return prevCart.filter(item => item.id !== id);
-    });
-  }, [orderPlaced]);
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      showToastMessage("Không thể xóa món khỏi giỏ hàng");
+    }
+  }, [orderPlaced, tableId, showToastMessage]);
 
   // Calculate total
   const calculateTotal = useCallback(() => {
+    console.log('Current cart items:', cart);
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   }, [cart]);
 
+  // Get total items in cart
+  const getCartItemCount = useCallback(() => {
+    const count = cart.reduce((count, item) => count + item.quantity, 0);
+    console.log('Cart item count:', count, 'Cart items:', cart);
+    return count;
+  }, [cart]);
+
+  // Render cart items
+  const renderCartItems = () => {
+    return cart.map(item => (
+      <div key={item.id} className="cart-item">
+        <div className="item-info">
+          <h3>{item.menu.name}</h3>
+          <p className="item-price">{item.price.toLocaleString()}đ</p>
+        </div>
+        <div className="item-actions">
+          <button onClick={() => removeFromCart(item.menu_id)}>-</button>
+          <span>{item.quantity}</span>
+          <button onClick={() => addToCart(item.menu_id)}>+</button>
+        </div>
+        <div className="item-total">
+          {(item.price * item.quantity).toLocaleString()}đ
+        </div>
+      </div>
+    ));
+  };
+
   // Handle order submission
-  const handleOrder = useCallback(() => {
+  const handleOrder = useCallback(async () => {
     if (!tableId || cart.length === 0) return;
 
     try {
-      // Add the order using the context
-      const newOrderId = addOrder({
-        tableId,
-        items: cart,
-        total: calculateTotal(),
-        note: note || undefined,
-        timestamp: new Date().toISOString()
-      });
+      console.log('Placing order:', { tableId, cart });
+      const orderData = {
+        number_table: parseInt(tableId),
+        items: cart.map(item => ({
+          menu_id: item.menu_id,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
 
+      const response = await qrOrderService.placeOrder(orderData);
+      console.log('Place order response:', response);
       setOrderStatus('pending');
       setOrderPlaced(true);
-
-      // If user is authenticated, add the order to their profile
-      if (isAuthenticated && currentUser) {
-        updateUserOrders(newOrderId);
-      }
-
       showToastMessage(`Đặt món thành công! Bàn số ${tableId}. Nhân viên sẽ mang món ăn đến cho bạn trong giây lát.`);
     } catch (error) {
       console.error("Error placing order:", error);
       showToastMessage("Không thể đặt món. Vui lòng thử lại sau.");
     }
-  }, [tableId, cart, note, addOrder, calculateTotal, isAuthenticated, currentUser, updateUserOrders, showToastMessage]);
+  }, [tableId, cart, showToastMessage]);
 
   // Handle new order creation
   const handleNewOrder = useCallback(() => {
-    // Reset the form to create a new order
     setCart([]);
     setNote('');
     setOrderPlaced(false);
@@ -200,11 +253,6 @@ const QrOrdering = () => {
   const toggleCartSection = useCallback(() => {
     setShowCartSection(prev => !prev);
   }, []);
-
-  // Get total items in cart
-  const getCartItemCount = useCallback(() => {
-    return cart.reduce((count, item) => count + item.quantity, 0);
-  }, [cart]);
 
   // Render order status
   const renderOrderStatus = useCallback(() => {
@@ -243,18 +291,12 @@ const QrOrdering = () => {
       <div className={`order-status ${statusClass}`}>
         <h3>Trạng thái đơn hàng</h3>
         <p className="status-text">{statusText}</p>
-        {orderStatus === 'preparing' && tableId && (
-          <p className="estimated-time">
-            Thời gian dự kiến: {getActiveOrderForTable(tableId)?.estimatedTime || '10-15'} phút
-          </p>
-        )}
-
         <button className="new-order-btn" onClick={handleNewOrder}>
           Đặt món mới
         </button>
       </div>
     );
-  }, [orderStatus, tableId, getActiveOrderForTable, handleNewOrder]);
+  }, [orderStatus, handleNewOrder]);
 
   // Handle missing tableId
   if (!tableId) {
@@ -269,26 +311,21 @@ const QrOrdering = () => {
     );
   }
 
-  // Click handler for menu item
-  const handleMenuItemClick = useCallback((item: MenuItem) => {
-    addToCart(item);
-  }, [addToCart]);
-
-  // Handler for quantity adjustment
-  const handleQuantityAdjust = useCallback((e: React.MouseEvent, item: MenuItem, action: 'add' | 'remove') => {
-    e.stopPropagation();
-    if (action === 'add') {
-      addToCart(item);
-    } else {
-      removeFromCart(item.id);
-    }
-  }, [addToCart, removeFromCart]);
+  if (loading) {
+    return (
+      <LoadingSpinner 
+        loadingText="Đang tải thực đơn..." 
+        showDots={true}
+        showSkeleton={true}
+        skeletonCount={4}
+      />
+    );
+  }
 
   return (
     <div className="qr-ordering-page">
       <div className="qr-header">
         <div className="container">
-          {/* Use constant instead of process.env */}
           <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
           <h1>Đặt món trực tiếp</h1>
           <p>Bàn số: {tableId}</p>
@@ -308,7 +345,7 @@ const QrOrdering = () => {
                     <div key={item.id} className="order-item">
                       <div className="item-name-quantity">
                         <span className="quantity">{item.quantity}x</span>
-                        <span className="name">{item.name}</span>
+                        <span className="name">{item.menu.name}</span>
                       </div>
                       <span className="price">{(item.price * item.quantity).toLocaleString()}đ</span>
                     </div>
@@ -343,17 +380,18 @@ const QrOrdering = () => {
                       className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
                       onClick={() => setSelectedCategory(category)}
                     >
-                      {category === 'popular' ? 'Món phổ biến' : category}
+                      {category === 'all' ? 'Tất cả' : 
+                       category === 'popular' ? 'Món phổ biến' : 
+                       category}
                     </button>
                   ))}
                 </div>
 
                 <div className="menu-items">
-                  {displayedItems.map(item => (
+                  {filteredMenuItems().map(item => (
                     <div
                       key={item.id}
                       className={`menu-item ${showAddedAnimation === item.id ? 'item-added' : ''}`}
-                      onClick={() => handleMenuItemClick(item)}
                     >
                       {item.image && (
                         <div className="item-image">
@@ -362,9 +400,13 @@ const QrOrdering = () => {
                       )}
                       <div className="item-details">
                         <h3 className="item-name">{item.name}</h3>
-                        <p className="item-description">{item.description}</p>
                         <p className="item-price">{item.price.toLocaleString()}đ</p>
-                        <button className="add-to-cart-btn">Thêm vào giỏ</button>
+                        <button 
+                          className="add-to-cart-btn"
+                          onClick={() => addToCart(item.id)}
+                        >
+                          Thêm vào giỏ
+                        </button>
                         {item.popular && selectedCategory !== 'popular' && (
                           <span className="popular-badge">Phổ biến</span>
                         )}
@@ -388,22 +430,7 @@ const QrOrdering = () => {
                     </div>
                   ) : (
                     <div className="cart-items">
-                      {cart.map(item => (
-                        <div key={item.id} className="cart-item">
-                          <div className="item-info">
-                            <h3>{item.name}</h3>
-                            <p className="item-price">{item.price.toLocaleString()}đ</p>
-                          </div>
-                          <div className="item-actions">
-                            <button onClick={(e) => handleQuantityAdjust(e, item, 'remove')}>-</button>
-                            <span>{item.quantity}</span>
-                            <button onClick={(e) => handleQuantityAdjust(e, item, 'add')}>+</button>
-                          </div>
-                          <div className="item-total">
-                            {(item.price * item.quantity).toLocaleString()}đ
-                          </div>
-                        </div>
-                      ))}
+                      {renderCartItems()}
                     </div>
                   )}
 
@@ -424,15 +451,6 @@ const QrOrdering = () => {
                     </div>
                   </div>
 
-                  {!isAuthenticated && cart.length > 0 && (
-                    <div className="auth-prompt">
-                      <p>Đăng nhập để lưu đơn hàng vào lịch sử</p>
-                      <button className="login-btn" onClick={handleLogin}>
-                        Đăng nhập
-                      </button>
-                    </div>
-                  )}
-
                   <button
                     className="order-button"
                     onClick={handleOrder}
@@ -449,6 +467,15 @@ const QrOrdering = () => {
                       Quay lại thực đơn
                     </button>
                   )}
+
+                  {cart.length > 0 && (
+                    <div className="auth-prompt">
+                      <p>Đăng nhập để lưu đơn hàng vào lịch sử</p>
+                      <button className="login-btn" onClick={handleLogin}>
+                        Đăng nhập
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -457,7 +484,7 @@ const QrOrdering = () => {
       </div>
 
       {/* Floating cart button */}
-      {!orderPlaced && !showCartSection && (
+      {!orderPlaced && (
         <FloatingCart
           itemCount={getCartItemCount()}
           onCartClick={toggleCartSection}

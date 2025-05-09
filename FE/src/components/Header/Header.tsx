@@ -54,11 +54,6 @@ const Header = () => {
                   Đặt bàn
                 </Link>
               </li>
-              <li>
-                <Link to="/qr-demo" className={location.pathname === '/qr-demo' ? 'active' : ''}>
-                  Hướng dẫn QR
-                </Link>
-              </li>
             </ul>
           </nav>
         </div>

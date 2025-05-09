@@ -1,107 +1,670 @@
-import { tableItem, TableItem } from "./TableItem"
-import { useState } from 'react'
-import FormTable from './FormTable'
-import './Table.scss'
-const Table = () => {
+import { useState, useEffect } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaCheck, FaTimes, FaCalendarAlt } from 'react-icons/fa';
+import './Table.scss';
+import { Toast } from '../../Toast/Toast';
+import { tableService, Table, TableRequest } from '../../../services/tableService';
+import { bookingService, Booking } from '../../../services/bookingService';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
-    const info = [
-        'Bàn số',
-        'Vị trí',
-        'Số lượng',
-        'Trạng Thái',
-        'Hoạt động'
-    ]
+const TableManagement = () => {
+  // State cho danh sách bàn
+  const [tables, setTables] = useState<Table[]>([]);
+  const [filteredTables, setFilteredTables] = useState<Table[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // State cho form thêm/sửa bàn
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentTable, setCurrentTable] = useState<Table | null>(null);
+  
+  // State cho form fields
+  const [formData, setFormData] = useState<TableRequest>({
+    table_number: '',
+    status: 'available'
+  });
+  
+  // State cho validation errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // State cho toast messages
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  
+  // State cho search/filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-    const [showForm, setShowForm] = useState(false)
-    const [tables, setTables] = useState<TableItem[]>(tableItem)
-    const [initTables, setInitTables] = useState<TableItem | null>(null);
+  // State cho đặt bàn
+  const [reservations, setReservations] = useState<Booking[]>([]);
+  const [pendingReservations, setPendingReservations] = useState<Booking[]>([]);
+  const [showReservations, setShowReservations] = useState(false);
+  const [hasNewReservations, setHasNewReservations] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
+  const [isReservationDetailOpen, setIsReservationDetailOpen] = useState(false);
+  
+  // Xử lý việc chọn bàn cho đặt bàn
+  const [selectedTableForReservation, setSelectedTableForReservation] = useState<string>('');
+  const [availableTablesForReservation, setAvailableTablesForReservation] = useState<Table[]>([]);
 
-    const handleSaveTable = (table: TableItem) => {
-        if (initTables) {
-            setTables(tables.map((item) => (item.id === table.id ? table as TableItem : item)));
-        } else {
-
-            setTables([...tables, { ...table, id: Date.now() }]);
-
+  // Lấy dữ liệu bàn và đặt bàn từ API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const tablesData = await tableService.getAllTables();
+        setTables(tablesData);
+        setFilteredTables(tablesData);
+        
+        const bookingsData = await bookingService.getAllBookings();
+        setReservations(bookingsData);
+        
+        const pending = bookingsData.filter(booking => booking.status === 'pending');
+        setPendingReservations(pending);
+        
+        if (pending.length > 0) {
+          setHasNewReservations(true);
         }
-        setShowForm(false);
-        setInitTables(null);
-        console.log(tables);
-
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        showToastMessage('Không thể tải dữ liệu. Vui lòng thử lại sau.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
     };
-
-    const handleDelete = (tableSelect: TableItem) => {
-        const confirmDelete = window.confirm(` Bạn muốn xóa bàn số ${tableSelect.number}`)
-        if (confirmDelete) {
-            const updatedTables = tables.filter(table => table.id !== tableSelect.id)
-            setTables(updatedTables)
+    
+    fetchData();
+    
+    // Set up polling để kiểm tra đặt bàn mới
+    const pollingInterval = setInterval(async () => {
+      try {
+        const bookingsData = await bookingService.getAllBookings();
+        const newPendingReservations = bookingsData.filter(booking => booking.status === 'pending');
+        
+        if (newPendingReservations.length > pendingReservations.length) {
+          setPendingReservations(newPendingReservations);
+          setHasNewReservations(true);
+          showToastMessage('Có đặt bàn mới!', 'info');
         }
+      } catch (error) {
+        console.error('Error checking new reservations:', error);
+      }
+    }, 60000); // Check mỗi phút
+    
+    return () => clearInterval(pollingInterval);
+  }, []);
+
+  // Lọc bàn phù hợp cho đặt bàn
+  useEffect(() => {
+    if (selectedReservation) {
+      // Lọc bàn trống
+      const suitableTables = tables.filter(table =>
+        table.status === 'available'
+      );
+      
+      setAvailableTablesForReservation(suitableTables);
+      
+      // Reset selected table
+      setSelectedTableForReservation('');
     }
+  }, [selectedReservation, tables]);
 
-    const handleEdit = (a: TableItem) => {
-        setInitTables(a);
-        setShowForm(!showForm);
-        console.log(a);
-
-    };
-    return (
-        <>
-            <div className="Table-Manage">
-                <div className="Head">
-                    <button type="submit" className="add-btn" onClick={() => {
-                        setShowForm(true)
-                        setInitTables(null)
-                    }}>
-                        + Thêm Bàn
-                    </button>
-                </div>
-
-                <div className="Table-body">
-                    <table className="Table-Table">
-                        <thead className="table-head">
-                            <tr>
-                                {info.map((item) => (
-                                    <th key={item}>{item}</th>
-                                ))}
-                            </tr>
-
-                        </thead>
-                        <tbody className="table-body">
-                            {tables.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    className='table-row'
-                                >
-                                    <td className="table-number"> {item.number}</td>
-                                    <td className="table-position"> {item.position}</td>
-                                    <td className="table-quantity"> {item.quantity}</td>
-                                    <td className="table-status"> {item.status}</td>
-                                    <td>
-                                        <button className="btn-edit" onClick={() => handleEdit(item)}>Sửa</button>
-                                        <button className="btn-delete" onClick={() => handleDelete(item)}>Xóa</button>
-                                    </td>
-
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                </div>
-            </div>
-
-
-            {showForm && (
-                <div className="overlay">
-                    <FormTable
-                        onsave={handleSaveTable}
-                        table={initTables}
-                        closeForm={() => setShowForm(false)}
-                    />
-                </div>
-            )
-            }
-        </>
-    )
+  // Hàm filter tables dựa trên search term và filter status
+  useEffect(() => {
+    let filtered = tables;
+    
+    if (searchTerm) {
+  filtered = filtered.filter(table =>
+    table.table_number?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    table.id?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  );
 }
 
-export default Table
+    
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(table => table.status === filterStatus);
+    }
+    
+    setFilteredTables(filtered);
+  }, [searchTerm, filterStatus, tables]);
+
+  // Hiển thị toast
+  const showToastMessage = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // Xử lý xem danh sách đặt bàn đang chờ
+  const handleViewReservations = () => {
+    setShowReservations(true);
+    setHasNewReservations(false);
+  };
+
+  // Xử lý xem chi tiết đặt bàn
+  const handleViewReservationDetail = (reservation: Booking) => {
+    setSelectedReservation(reservation);
+    setIsReservationDetailOpen(true);
+  };
+
+  // Xử lý thay đổi bàn được chọn
+  const handleTableSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTableForReservation(e.target.value);
+  };
+
+  // Xử lý thêm bàn mới
+  const handleAddTable = () => {
+    setIsEditing(false);
+    setFormData({
+      table_number: '',
+      status: 'available'
+    });
+    setIsFormOpen(true);
+  };
+
+  // Xử lý sửa bàn
+  const handleEditTable = (table: Table) => {
+    setIsEditing(true);
+    setCurrentTable(table);
+    setFormData({
+      table_number: table.table_number,
+      status: table.status
+    });
+    setIsFormOpen(true);
+  };
+
+  // Xử lý thay đổi trạng thái bàn
+  const handleStatusChange = async (tableId: string, newStatus: 'available' | 'reserved' | 'occupied') => {
+    try {
+      const table = tables.find(t => t.id === tableId);
+      if (!table) return;
+      
+      const updatedTable = await tableService.updateTable(tableId, { 
+        table_number: table.table_number,
+        status: newStatus 
+      });
+      setTables(prev =>
+        prev.map(table =>
+          table.id === tableId ? updatedTable : table
+        )
+      );
+      showToastMessage(`Đã cập nhật trạng thái bàn thành ${
+        newStatus === 'available' ? 'Trống' :
+        newStatus === 'reserved' ? 'Đã đặt' : 'Đang sử dụng'
+      }`);
+    } catch (error) {
+      console.error('Error updating table status:', error);
+      showToastMessage('Không thể cập nhật trạng thái bàn', 'error');
+    }
+  };
+
+  // Xử lý xóa bàn
+  const handleDeleteTable = async (tableId: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
+      try {
+        await tableService.deleteTable(tableId);
+        setTables(prev => prev.filter(table => table.id !== tableId));
+        showToastMessage('Đã xóa bàn thành công');
+      } catch (error) {
+        console.error('Error deleting table:', error);
+        showToastMessage('Không thể xóa bàn', 'error');
+      }
+    }
+  };
+
+  // Xử lý submit form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+      try {
+        if (isEditing && currentTable) {
+          // Update existing table
+          const updatedTable = await tableService.updateTable(currentTable.id, formData);
+          setTables(prev =>
+            prev.map(table =>
+              table.id === currentTable.id ? updatedTable : table
+            )
+          );
+          showToastMessage('Cập nhật bàn thành công');
+        } else {
+          // Add new table
+          const newTable = await tableService.createTable(formData);
+          setTables(prev => [...prev, newTable]);
+          showToastMessage('Thêm bàn mới thành công');
+        }
+        
+        setIsFormOpen(false);
+        setCurrentTable(null);
+      } catch (error) {
+        console.error('Error saving table:', error);
+        showToastMessage('Không thể lưu thông tin bàn', 'error');
+      }
+    }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.table_number.trim()) {
+      newErrors.table_number = 'Vui lòng nhập số bàn';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Render status badge with appropriate color
+  const renderStatusBadge = (status: string) => {
+    let badgeClass = '';
+    let statusText = '';
+    
+    switch (status) {
+      case 'available':
+        badgeClass = 'status-available';
+        statusText = 'Trống';
+        break;
+      case 'reserved':
+        badgeClass = 'status-reserved';
+        statusText = 'Đã đặt';
+        break;
+      case 'occupied':
+        badgeClass = 'status-occupied';
+        statusText = 'Đang sử dụng';
+        break;
+      default:
+        badgeClass = '';
+        statusText = status;
+    }
+    
+    return <span className={`status-badge ${badgeClass}`}>{statusText}</span>;
+  };
+
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  // Format time for display
+  const formatTime = (timeStr: string) => {
+    return timeStr;
+  };
+
+  // Format date time for display
+  const formatDateTime = (dateTimeStr: string) => {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleString('vi-VN');
+  };
+
+  return (
+    <div className="table-management">
+      <div className="table-management-header">
+        <div className="search-filter-container">
+          <div className="search-box">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm bàn..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="filter-box">
+            <label htmlFor="status-filter">Lọc theo trạng thái:</label>
+            <select
+              id="status-filter"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="all">Tất cả</option>
+              <option value="available">Trống</option>
+              <option value="reserved">Đã đặt</option>
+              <option value="occupied">Đang sử dụng</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="action-buttons">
+          <button
+            className={`reservations-btn ${hasNewReservations ? 'has-new' : ''}`}
+            onClick={handleViewReservations}
+          >
+            <FaCalendarAlt /> Đặt bàn
+            {hasNewReservations && <span className="notification-badge">{pendingReservations.length}</span>}
+          </button>
+          
+          <button className="add-table-btn" onClick={handleAddTable}>
+            <FaPlus /> Thêm bàn mới
+          </button>
+        </div>
+      </div>
+      
+      {!showReservations ? (
+        <div className="tables-grid">
+          {isLoading ? (
+            <div style={{ gridColumn: '1 / -1', width: '100%' }}>
+              <LoadingSpinner loadingText="Đang tải danh sách bàn..." showDots={true} />
+            </div>
+          ) : filteredTables.length > 0 ? (
+            filteredTables.map(table => (
+              <div key={table.id} className={`table-card ${table.status}`}>
+                <div className="table-card-header">
+                  <h3>Bàn {table.table_number}</h3>
+                  {renderStatusBadge(table.status)}
+                </div>
+                
+                <div className="table-card-content">
+                  <p><strong>Mã bàn:</strong> {table.id}</p>
+                  {table.qr_code && (
+                    <div className="qr-code">
+                      <img src={table.qr_code} alt={`QR Code for Table ${table.table_number}`} />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="table-card-actions">
+                  <div className="status-actions">
+                    <label>Trạng thái:</label>
+                    <select
+                      value={table.status}
+                      onChange={(e) => handleStatusChange(
+                        table.id,
+                        e.target.value as 'available' | 'reserved' | 'occupied'
+                      )}
+                    >
+                      <option value="available">Trống</option>
+                      <option value="reserved">Đã đặt</option>
+                      <option value="occupied">Đang sử dụng</option>
+                    </select>
+                  </div>
+                  
+                  <div className="card-buttons">
+                    <button className="edit-btn" onClick={() => handleEditTable(table)}>
+                      <FaEdit /> Sửa
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDeleteTable(table.id)}>
+                      <FaTrash /> Xóa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-tables-message">
+              <p>Không tìm thấy bàn nào</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="reservations-section">
+          <div className="reservations-header">
+            <h2>Danh sách đặt bàn đang chờ xác nhận ({pendingReservations.length})</h2>
+            <button
+              className="back-btn"
+              onClick={() => setShowReservations(false)}
+            >
+              Quay lại quản lý bàn
+            </button>
+          </div>
+          
+          <div className="reservations-list">
+            {pendingReservations.length > 0 ? (
+              <table className="reservations-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Ngày đặt</th>
+                    <th>Giờ</th>
+                    <th>Khách</th>
+                    <th>Tên khách hàng</th>
+                    <th>Liên lạc</th>
+                    <th>Thời gian đặt</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingReservations.map(reservation => (
+                    <tr key={reservation.id}>
+                      <td>{reservation.id}</td>
+                      <td>{formatDate(reservation.booking_date)}</td>
+                      <td>{formatTime(reservation.time)}</td>
+                      <td>{reservation.guests} người</td>
+                      <td>{reservation.name}</td>
+                      <td>
+                        <div>📞 {reservation.phone}</div>
+                        <div>✉️ {reservation.email}</div>
+                      </td>
+                      <td>{formatDateTime(reservation.createdAt)}</td>
+                      <td>
+                        <div className="table-row-actions">
+                          <button
+                            className="view-btn"
+                            onClick={() => handleViewReservationDetail(reservation)}
+                          >
+                            Xem chi tiết
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="no-reservations-message">
+                <p>Không có đặt bàn nào đang chờ xác nhận</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {isFormOpen && (
+        <div className="table-form-overlay">
+          <div className="table-form-container">
+            <div className="form-header">
+              <h2>{isEditing ? 'Cập nhật thông tin bàn' : 'Thêm bàn mới'}</h2>
+              <button className="close-btn" onClick={() => setIsFormOpen(false)}>×</button>
+            </div>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="table_number">Số bàn <span className="required">*</span></label>
+                <input
+                  type="text"
+                  id="table_number"
+                  name="table_number"
+                  value={formData.table_number}
+                  onChange={handleInputChange}
+                  className={errors.table_number ? 'error' : ''}
+                />
+                {errors.table_number && <div className="error-message">{errors.table_number}</div>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="status">Trạng thái</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                >
+                  <option value="available">Trống</option>
+                  <option value="reserved">Đã đặt</option>
+                  <option value="occupied">Đang sử dụng</option>
+                </select>
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={() => setIsFormOpen(false)}>
+                  Hủy
+                </button>
+                <button type="submit" className="submit-btn">
+                  {isEditing ? 'Cập nhật' : 'Thêm mới'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {isReservationDetailOpen && selectedReservation && (
+        <div className="reservation-detail-overlay">
+          <div className="reservation-detail-container">
+            <div className="detail-header">
+              <h2>Chi tiết đặt bàn</h2>
+              <button className="close-btn" onClick={() => setIsReservationDetailOpen(false)}>×</button>
+            </div>
+            
+            <div className="detail-content">
+              <div className="detail-section">
+                <h3>Thông tin đặt bàn</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Ngày đặt:</span>
+                    <span className="detail-value">{formatDate(selectedReservation.booking_date)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Giờ đặt:</span>
+                    <span className="detail-value">{formatTime(selectedReservation.time)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Số khách:</span>
+                    <span className="detail-value">{selectedReservation.guests} người</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="detail-section">
+                <h3>Thông tin khách hàng</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Họ tên:</span>
+                    <span className="detail-value">{selectedReservation.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Số điện thoại:</span>
+                    <span className="detail-value">{selectedReservation.phone}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Email:</span>
+                    <span className="detail-value">{selectedReservation.email}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="detail-section">
+                <h3>Yêu cầu đặc biệt</h3>
+                <div className="special-requests">
+                  {selectedReservation.withChildren && (
+                    <div className="request-tag">Có trẻ em</div>
+                  )}
+                  {selectedReservation.birthday && (
+                    <div className="request-tag">Tiệc sinh nhật</div>
+                  )}
+                  {selectedReservation.window && (
+                    <div className="request-tag">Bàn gần cửa sổ</div>
+                  )}
+                  {selectedReservation.childrenChair && (
+                    <div className="request-tag">Cần ghế trẻ em</div>
+                  )}
+                </div>
+                
+                {selectedReservation.notes && (
+                  <div className="notes-section">
+                    <h4>Ghi chú:</h4>
+                    <p>{selectedReservation.notes}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="detail-section">
+                <h3>Xác nhận đặt bàn</h3>
+                <div className="table-selection">
+                  <label htmlFor="table-select">Chọn bàn:</label>
+                  <select
+                    id="table-select"
+                    value={selectedTableForReservation}
+                    onChange={handleTableSelectionChange}
+                  >
+                    <option value="">-- Chọn bàn --</option>
+                    {availableTablesForReservation.map(table => (
+                      <option key={table.id} value={table.id}>
+                        Bàn {table.table_number}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="confirmation-actions">
+                  <button
+                    className="confirm-btn"
+                    onClick={async () => {
+                      try {
+                        await bookingService.updateBookingStatus(selectedReservation.id, 'confirmed');
+                        showToastMessage('Đã xác nhận đặt bàn thành công');
+                        setIsReservationDetailOpen(false);
+                        // Refresh data
+                        const bookingsData = await bookingService.getAllBookings();
+                        setReservations(bookingsData);
+                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
+                      } catch (error) {
+                        console.error('Error confirming booking:', error);
+                        showToastMessage('Không thể xác nhận đặt bàn', 'error');
+                      }
+                    }}
+                    disabled={!selectedTableForReservation}
+                  >
+                    <FaCheck /> Xác nhận
+                  </button>
+                  
+                  <button
+                    className="cancel-btn"
+                    onClick={async () => {
+                      try {
+                        await bookingService.updateBookingStatus(selectedReservation.id, 'cancelled');
+                        showToastMessage('Đã hủy đặt bàn');
+                        setIsReservationDetailOpen(false);
+                        // Refresh data
+                        const bookingsData = await bookingService.getAllBookings();
+                        setReservations(bookingsData);
+                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
+                      } catch (error) {
+                        console.error('Error cancelling booking:', error);
+                        showToastMessage('Không thể hủy đặt bàn', 'error');
+                      }
+                    }}
+                  >
+                    <FaTimes /> Hủy đặt bàn
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default TableManagement;

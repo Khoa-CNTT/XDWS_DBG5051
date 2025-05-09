@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import { api } from "../../../Api/AxiosIntance"
 import CateForm from "./CateForm"
-import { authHeader } from "../../../Api/Login"
 
 export type CategoryType = {
     id: number;
@@ -19,13 +18,17 @@ const Category = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+<<<<<<< HEAD
                 const response = await axios.get('http://localhost:8000/api/cate');
                 setCategory(response.data.data);
+=======
+                const response = await api.get('/cate');
+                setCategory(response.data.data.map((item: CategoryType) => item));
+>>>>>>> Vuong
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-
 
         fetchCategories();
     }, [refresh]);
@@ -34,16 +37,17 @@ const Category = () => {
         setInitCate(cate);
         setShowAddForm(true);
         console.log(cate);
-
     };
 
     const handleClose = () => {
         setInitCate(null);
         setShowAddForm(false)
     }
+
     const handleSaveCate = async (cate: CategoryType) => {
         try {
             if (initCate) {
+<<<<<<< HEAD
                 const res = await axios.put(`http://localhost:8000/api/admin/update-cate/${cate.id}`, cate,
                     authHeader()
                 );
@@ -52,21 +56,37 @@ const Category = () => {
 
                 const res = await axios.post(`http://localhost:8000/api/admin/add-cate`, cate, authHeader());
                 console.log('Thêm Danh Mục ăn thành công:', res.data);
+=======
+                const res = await api.put(`/admin/update-cate/${cate.id}`, cate);
+                console.log('Cập nhật Danh Mục thành công:', res.data);
+            } else {
+                const res = await api.post(`/admin/add-cate`, cate);
+                console.log('Thêm danh mục thành công:', res.data);
+>>>>>>> Vuong
             }
 
             setShowAddForm(false);
             setInitCate(null);
             setRefresh(prev => !prev);
         } catch (error: any) {
+<<<<<<< HEAD
             console.error('Lỗi khi lưu Danh Mục:', error.response);
 
+=======
+            console.error('Lỗi khi lưu danh mục:', error.response);
+>>>>>>> Vuong
         }
     };
+
     const handleDelete = async (cate: CategoryType) => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${cate.name}`)
         if (confirmDelete) {
             try {
+<<<<<<< HEAD
                 const res = await axios.delete(`http://localhost:8000/api/admin/delete-cate/${cate.id}`, authHeader());
+=======
+                const res = await api.delete(`/admin/cate/${cate.id}`);
+>>>>>>> Vuong
                 console.log('Xóa danh mục thành công:', res.data);
                 setCategory((prev) => prev.filter((item) => item.id !== cate.id));
             } catch (error: any) {
@@ -75,9 +95,7 @@ const Category = () => {
         }
     }
 
-
     return (
-
         <div className='Menu-Manage'>
             <div className='Head'>
                 <button className="add-btn" onClick={() => {
@@ -101,8 +119,6 @@ const Category = () => {
                             console.log('Danh muc:', cate);
                             return (
                                 <tr key={cate?.id} className="food-row">
-
-
                                     <td className="food-name">{cate?.name}</td>
                                     <td className="food-actions">
                                         <button className="btn-edit"
@@ -116,14 +132,12 @@ const Category = () => {
                                             onClick={() => handleDelete(cate)}
                                         >Xóa</button>
                                     </td>
-
                                 </tr>
                             )
                         })}
                     </tbody>
                 </table>
             </div>
-
 
             {showAddForm && (
                 <div className="overlay">
@@ -133,15 +147,9 @@ const Category = () => {
                         closeForm={handleClose}
                     />
                 </div>
-            )
-            }
+            )}
         </div>
-
-
-
     )
 }
-
-
 
 export default Category

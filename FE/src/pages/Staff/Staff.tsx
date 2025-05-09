@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PaymentManagement from '../../components/Manage/Payment/Payment';
+import OrderManagement from '../../components/Manage/Order/Order';
 import './Staff.scss';
 import { FaHome, FaClipboardList, FaBars, FaSignOutAlt, FaMoneyBillWave } from 'react-icons/fa';
 
@@ -131,7 +132,7 @@ const Staff = () => {
 
         <div className="content-body">
           {activeTab === 'dashboard' && <div className="placeholder-content">Xin chào nhân viên!</div>}
-          {activeTab === 'orders' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'orders' && <OrderManagement />}
           {activeTab === 'payments' && <PaymentManagement />}
         </div>
       </div>
