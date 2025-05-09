@@ -38,21 +38,13 @@ class MenuController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $name = $file->getClientOriginalName();
-
-            $uploadDirectory = public_path('upload/menu');
-            if (!file_exists($uploadDirectory)) {
-                mkdir($uploadDirectory, 0777, true); // Tạo thư mục nếu không tồn tại
-            }
-
-            // Di chuyển file
-            $file->move($uploadDirectory, $name);
-
+            // Lưu tên file vào cột 'image'
             $data['image'] = $name;
+            // Di chuyển file hình ảnh vào thư mục lưu trữ mong muốn
+            $file->move('upload/menu', $name);
         }
 
-        $menu = new Menu();
-        $menu->fill($data);
-        $menu->save();
+        $menu = Menu::create($data);
 
         if ($menu) {
             return response()->json([
@@ -89,51 +81,9 @@ class MenuController extends Controller
      */
     public function update(MenuRequest $request, string $id)
     {
-        $menu = Menu::findOrFail($id);
-        $data = $request->all();
-
-        // Chuyển danh sách hình ảnh hiện tại thành mảng
-        $exitImg = json_decode($menu->image, true) ?? [];
-
-        // Lấy danh sách hình ảnh cần xóa từ request
-        $deleteImages = $request->input('delete_images', []);
-
-        // Xử lý xóa các ảnh trong danh sách
-        foreach ($deleteImages as $deleteImg) {
-            if (($key = array_search($deleteImg, $exitImg)) !== false) {
-                unset($exitImg[$key]);
-                $filePath = public_path('upload/menu/' . $deleteImg);
-                if (file_exists($filePath)) {
-                    unlink($filePath);
-                }
-            }
-        }
-
-        // Đảm bảo chỉ còn các ảnh còn lại sau khi xóa
-        $exitImg = array_values($exitImg);
-
-        // Xử lý thêm ảnh mới (chỉ một ảnh)
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            // Lấy tên ảnh
-            $name = $file->getClientOriginalName();
-            // Lưu ảnh vào thư mục
-            $path = public_path('upload/menu/' . $name);
-            $file->move(public_path('upload/menu'), $name);
-
-            // Lưu tên ảnh vào mảng mới
-            $newImg = [$name];
-        }
-
-        // Kết hợp ảnh cũ và ảnh mới
-        $allImage = array_merge($exitImg, $newImg ?? []);
-
-        // Cập nhật lại dữ liệu hình ảnh trong mảng
-        $data['image'] = json_encode($allImage);
-
+        $menu = Menu::find($id);
         // Cập nhật menu
-        $menu->update($data);
-
+        $menu->update($request->all());
         if (!$menu) {
             return response()->json([
                 'message' => "Món không tồn tại"

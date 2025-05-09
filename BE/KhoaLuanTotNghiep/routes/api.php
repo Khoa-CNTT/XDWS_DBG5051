@@ -75,6 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/list-booking', [BookingController::class, 'index']);
         //câp nhật đơn đặt bàn
         Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);
+
     });
 
     // 🔹 Chỉ staff mới có quyền vào route này
@@ -88,20 +89,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/staff/order-item/{id}', [OrderController::class, 'show']);
         //Thanh toán
         Route::post('/staff/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
+        //phản hồi VNpay
         Route::get('/staff/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
+        //phản hồi cash, card
         Route::post('/staff/internal_payment', [CheckoutController::class, 'internal_payment']);
     });
 });
 
 // Danh mục 
 Route::get('/cate', [CateController::class, 'index']);
+
 // ban
 Route::get('/table', [TableController::class, 'index']);
+
 //Menu
 Route::get('/list-menu', [MenuController::class, 'index']);
 
 // Đơn hàng
 Route::get('/order', [OrderController::class, 'index']);
+
 //đặt món
 Route::post('/orders/place', [OrderController::class, 'placeOrder']);
 
@@ -122,8 +128,6 @@ Route::post('/cart/down', [CartController::class, 'downQtyCart']);
 
 // Xóa sản phẩm khỏi giỏ
 Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
-
-
 
 
 
