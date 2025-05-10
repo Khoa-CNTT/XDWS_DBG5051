@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookingController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CateController;
+use App\Http\Controllers\API\ChatbotController;
 use App\Http\Controllers\API\CheckoutController;
 use App\Http\Controllers\API\MenuController;
 use App\Http\Controllers\API\OrderController;
@@ -129,6 +130,6 @@ Route::post('/cart/down', [CartController::class, 'downQtyCart']);
 // Xóa sản phẩm khỏi giỏ
 Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
 
-
-
+//Chatbox
+Route::post('/chatbox', [ChatbotController::class, 'ask']);
 

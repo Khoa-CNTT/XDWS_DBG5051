@@ -82,8 +82,23 @@ class MenuController extends Controller
     public function update(MenuRequest $request, string $id)
     {
         $menu = Menu::find($id);
-        // Cập nhật menu
-        $menu->update($request->all());
+        if (!$menu) {
+            return response()->json([
+                'message' => "Món không tồn tại"
+            ], 404);
+        }
+        $data = $request->all();
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $name = $file->getClientOriginalName();
+            // Lưu tên file vào cột 'image'
+            $data['image'] = $name;
+            // Di chuyển file hình ảnh vào thư mục lưu trữ mong muốn
+            $file->move('upload/menu', $name);
+        }
+
+          $menu->update($data);
+
         if (!$menu) {
             return response()->json([
                 'message' => "Món không tồn tại"
