@@ -23,21 +23,14 @@ const loginForm = () => {
             console.log('TOKEN:', token);
             setError('');
 
-<<<<<<< HEAD
-
-            if (role === 'staff') {
-                navigate('/staff');
-            } else {
-                navigate('/admin');
-=======
             // Lấy thông tin người dùng và kiểm tra role
             try {
                 const userInfo = await getUserInfo();
                 console.log('Thông tin người dùng:', userInfo);
-                
+
                 // Lưu role vào localStorage
                 localStorage.setItem('role', userInfo.role);
-                
+
                 // Kiểm tra role và điều hướng
                 if (userInfo.role === 'admin') {
                     navigate('/admin');
@@ -49,7 +42,6 @@ const loginForm = () => {
             } catch (error) {
                 console.error('Lỗi khi lấy thông tin người dùng:', error);
                 setError('Không thể lấy thông tin người dùng');
->>>>>>> Vuong
             }
 
         } catch (error: any) {

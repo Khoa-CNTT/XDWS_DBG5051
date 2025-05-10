@@ -18,13 +18,8 @@ const Category = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-<<<<<<< HEAD
-                const response = await axios.get('http://localhost:8000/api/cate');
-                setCategory(response.data.data);
-=======
                 const response = await api.get('/cate');
                 setCategory(response.data.data.map((item: CategoryType) => item));
->>>>>>> Vuong
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -47,34 +42,18 @@ const Category = () => {
     const handleSaveCate = async (cate: CategoryType) => {
         try {
             if (initCate) {
-<<<<<<< HEAD
-                const res = await axios.put(`http://localhost:8000/api/admin/update-cate/${cate.id}`, cate,
-                    authHeader()
-                );
-                console.log('Cập nhật Danh Mục thành công:', res.data);
-            } else {
-
-                const res = await axios.post(`http://localhost:8000/api/admin/add-cate`, cate, authHeader());
-                console.log('Thêm Danh Mục ăn thành công:', res.data);
-=======
                 const res = await api.put(`/admin/update-cate/${cate.id}`, cate);
                 console.log('Cập nhật Danh Mục thành công:', res.data);
             } else {
                 const res = await api.post(`/admin/add-cate`, cate);
                 console.log('Thêm danh mục thành công:', res.data);
->>>>>>> Vuong
             }
 
             setShowAddForm(false);
             setInitCate(null);
             setRefresh(prev => !prev);
         } catch (error: any) {
-<<<<<<< HEAD
-            console.error('Lỗi khi lưu Danh Mục:', error.response);
-
-=======
             console.error('Lỗi khi lưu danh mục:', error.response);
->>>>>>> Vuong
         }
     };
 
@@ -82,11 +61,7 @@ const Category = () => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${cate.name}`)
         if (confirmDelete) {
             try {
-<<<<<<< HEAD
-                const res = await axios.delete(`http://localhost:8000/api/admin/delete-cate/${cate.id}`, authHeader());
-=======
                 const res = await api.delete(`/admin/cate/${cate.id}`);
->>>>>>> Vuong
                 console.log('Xóa danh mục thành công:', res.data);
                 setCategory((prev) => prev.filter((item) => item.id !== cate.id));
             } catch (error: any) {

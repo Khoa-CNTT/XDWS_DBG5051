@@ -35,7 +35,7 @@ const MenuManage = () => {
     }, [refresh]);
 
     useEffect(() => {
-        // const wait = setTimeout(() => {
+
         const fetchMenus = async () => {
             try {
                 const result = await getCurrentApi('/list-menu', 'get');
@@ -46,30 +46,29 @@ const MenuManage = () => {
             }
         };
         fetchMenus();
-        // }, 200);
 
-        // return clearTimeout(wait);
     }, [refresh]);
 
     const getImageUrl = (image: string | null) => {
         if (!image) return '/vite.svg';
         if (image.startsWith('http')) return image;
-        return `http://localhost:8000/uploads/${image}`;
+        return `http://localhost:8000/upload/menu/${image}`;
     };
 
 
 
-    const handleSaveMenu = async (food: FoodItem) => {
+    const handleSaveMenu = async (form: FormData) => {
         try {
             if (initMenus) {
 
-                const res = await axios.put(`http://localhost:8000/api/admin/update-menu/${food.id}`, food,
+                form.append('_method', 'PUT');
+                const res = await axios.post(`http://localhost:8000/api/admin/update-menu/${initMenus.id}`, form,
                     authHeader()
                 );
                 console.log('Cập nhật món ăn thành công:', res.data);
             } else {
                 // Gọi API thêm món ăn
-                const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, food, authHeader());
+                const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, form, authHeader());
                 console.log('Thêm món ăn thành công:', res.data.data);
             }
 

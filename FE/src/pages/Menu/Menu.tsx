@@ -54,34 +54,19 @@ const Menu = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-<<<<<<< HEAD
 
-        // Gọi cả hai API cùng lúc
-        const [menuResponse, categoryResponse] = await Promise.all([
-          axios.get('http://127.0.0.1:8000/api/list_menu'),
-          axios.get('http://127.0.0.1:8000/api/cate')
-        ]);
-
-
-        // Lấy dữ liệu từ API (kiểm tra xem có phải mảng không)
-        const menuData = menuResponse.data.data;
-        const categoryData = categoryResponse.data.data;
-
-=======
-  
         // Gọi cả ba API cùng lúc
         const [menuResponse, categoryResponse, popularResponse] = await Promise.all([
           api.get(API_ENDPOINTS.MENU),
           api.get(API_ENDPOINTS.CATEGORIES),
           api.get(API_ENDPOINTS.POPULAR_DISHES)
         ]);
-  
+
         // Lấy dữ liệu từ API (kiểm tra xem có phải mảng không)
         const menuData = menuResponse.data.data;
         const categoryData = categoryResponse.data.data;
         const popularData = popularResponse.data;
-  
->>>>>>> Vuong
+
         if (!Array.isArray(menuData) || !Array.isArray(categoryData)) {
           throw new Error('Dữ liệu API không đúng định dạng');
         }
@@ -91,10 +76,7 @@ const Menu = () => {
 
         // Cập nhật danh mục (lấy từ API danh mục thay vì từ danh sách món)
         setCategoryOrder(categoryData.map(category => category.name));
-<<<<<<< HEAD
 
-=======
-        
         // Cập nhật danh sách món ăn phổ biến
         if (Array.isArray(popularData)) {
           setPopularItems(popularData);
@@ -105,8 +87,7 @@ const Menu = () => {
           // Fallback: nếu API trả về không đúng định dạng, sử dụng những món có flag popular = true
           setPopularItems(menuData.filter(item => item.popular).slice(0, 8));
         }
-  
->>>>>>> Vuong
+
         setLoading(false);
       } catch (err) {
         setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
@@ -117,10 +98,6 @@ const Menu = () => {
 
     fetchData();
   }, []);
-<<<<<<< HEAD
-
-=======
->>>>>>> Vuong
 
   // Helper functions using the state instead of imported data
   const groupMenuItemsByCategory = () => {
@@ -129,7 +106,7 @@ const Menu = () => {
     menuItems.forEach(item => {
       // Sử dụng item.category.name thay vì item.category
       const categoryName = item.category?.name || 'Khác';
-      
+
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
@@ -153,14 +130,8 @@ const Menu = () => {
     if (!keyword.trim()) return [];
 
     const normalizedKeyword = keyword.toLowerCase().trim();
-<<<<<<< HEAD
     return menuItems.filter(item =>
-      item.name.toLowerCase().includes(normalizedKeyword) ||
-      item.description.toLowerCase().includes(normalizedKeyword)
-=======
-    return menuItems.filter(item => 
       item.name.toLowerCase().includes(normalizedKeyword)
->>>>>>> Vuong
     );
   };
 
@@ -185,13 +156,8 @@ const Menu = () => {
         setFilteredItems(groupedMenu[selectedCategory] || []);
       }
     }
-<<<<<<< HEAD
-  }, [loading, menuItems, selectedCategory]);
-
-=======
   }, [loading, menuItems, selectedCategory, popularItems]);
-  
->>>>>>> Vuong
+
   // Handle normal category filtering
   useEffect(() => {
     if (!isSearching && !isPriceFiltering && !loading && menuItems.length > 0) {
@@ -203,13 +169,8 @@ const Menu = () => {
         setFilteredItems(groupedMenu[selectedCategory] || []);
       }
     }
-<<<<<<< HEAD
-  }, [selectedCategory, isSearching, isPriceFiltering, loading, menuItems.length]);
-
-=======
   }, [selectedCategory, isSearching, isPriceFiltering, loading, menuItems.length, popularItems]);
-  
->>>>>>> Vuong
+
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -316,11 +277,11 @@ const Menu = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner 
-      loadingText="Đang tải thực đơn..." 
-      showDots={true} 
-      showSkeleton={true} 
-      skeletonCount={2} 
+    return <LoadingSpinner
+      loadingText="Đang tải thực đơn..."
+      showDots={true}
+      showSkeleton={true}
+      skeletonCount={2}
     />;
   }
 
@@ -334,21 +295,16 @@ const Menu = () => {
         <div className="menu-header">
           <h1>Thực Đơn</h1>
           <div className="breadcrumb">
-<<<<<<< HEAD
             <Link to="/">Trang chủ</Link> {'>'} <span>Thực đơn</span> {'>'}
-            <span>{isSearching ? 'Kết quả tìm kiếm' : (selectedCategory === 'popular' ? 'Món phổ biến' : selectedCategory)}</span>
-=======
-            <Link to="/">Trang chủ</Link> {'>'} <span>Thực đơn</span> {'>'} 
             <span>
-              {isSearching ? 'Kết quả tìm kiếm' : 
-                (selectedCategory === 'popular' ? 'Món phổ biến' : 
-                (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
+              {isSearching ? 'Kết quả tìm kiếm' :
+                (selectedCategory === 'popular' ? 'Món phổ biến' :
+                  (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
             </span>
->>>>>>> Vuong
-          </div>
+          </div >
 
           {/* Search Box */}
-          <div className="search-container">
+          < div className="search-container" >
             <form onSubmit={handleSearch} className="search-form">
               <input
                 type="text"
@@ -366,7 +322,7 @@ const Menu = () => {
                 </button>
               )}
             </form>
-          </div>
+          </div >
 
           <div className="price-filter-container">
             <form onSubmit={handlePriceFilter} className="price-filter-form">
@@ -404,12 +360,8 @@ const Menu = () => {
               </div>
             )}
           </div>
-        </div>
+        </div >
 
-<<<<<<< HEAD
-
-=======
->>>>>>> Vuong
         <div className="menu-container">
           <div className="menu-sidebar">
             <ul className="category-list">
@@ -506,8 +458,8 @@ const Menu = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
