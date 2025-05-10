@@ -1,0 +1,45 @@
+intent,pattern,response
+best_selling_dishes,Món ăn nào đang bán chạy nhất?,"Món ăn bán chạy nhất hiện tại là Thịt bò."
+best_selling_dishes,Cho tôi biết món ăn phổ biến hiện nay?,"Khách hàng rất hay chọn Thịt bò – bạn có muốn thử không?"
+best_selling_dishes,Những món nào khách thường gọi nhiều?,"Top món hiện tại: 1. Thịt bò, 2. Thịt ba chỉ heo, 3. Nạc vai bò."
+best_selling_dishes,Top món ăn bên nhà hàng là gì?,"Ba chỉ bò Mỹ là món được khách hàng yêu thích nhất."
+best_selling_dishes,Gợi ý món ăn ngon và bán chạy đi?,"Hiện tại,Thịt bò Wagu đang được đặt rất nhiều."
+
+intent,pattern,response
+opening_hours,Nhà hàng mở cửa lúc mấy giờ?,"Nhà hàng chúng tôi mở cửa từ 9 giờ sáng đến 10 giờ tối."
+opening_hours,Giờ làm việc của nhà hàng là bao lâu?,"Nhà hàng chúng tôi mở cửa từ 9 giờ sáng đến 10 giờ tối."
+opening_hours,Cửa hàng có mở vào cuối tuần không?,"Chúng tôi mở cửa mỗi ngày, bao gồm cả cuối tuần, từ 9 giờ sáng đến 10 giờ tối."
+opening_hours,Khi nào nhà hàng đóng cửa?,"Nhà hàng đóng cửa lúc 10 giờ tối mỗi ngày."
+opening_hours,Nhà hàng có mở cửa vào lễ không?,"Nhà hàng sẽ mở cửa trong suốt kỳ nghỉ lễ, từ 9 giờ sáng đến 10 giờ tối."
+
+intent,pattern,response
+location,Nhà hàng ở đâu?,"Chúng tôi nằm tại 123 Đường X, Quận Y, TP.Đà Nẵng."
+location,Cửa hàng của bạn ở vị trí nào?,"Chúng tôi nằm tại 123 Đường X, Quận Y, TP.Đà Nẵng."
+location,Địa chỉ của nhà hàng là gì?,"Nhà hàng chúng tôi ở 123 Đường X, Quận Y, TP.Đà Nẵng."
+location,Cho tôi biết địa chỉ nhà hàng?,"Chúng tôi tọa lạc tại 123 Đường X, Quận Y, TP.Đà Nẵng."
+
+intent,pattern,response
+reservation,Làm sao để tôi đặt bàn?,"Bạn có thể gọi điện thoại hoặc đặt bàn trực tuyến qua website của chúng tôi."
+reservation,Tôi muốn đặt bàn cho 2 người vào tối nay?,"Xin vui lòng cho tôi biết thời gian và tên của bạn, chúng tôi sẽ xác nhận."
+reservation,Nhà hàng có nhận đặt bàn trước không?,"Chúng tôi nhận đặt bàn trước qua điện thoại hoặc website."
+reservation,Tôi muốn đặt bàn cho 4 người vào cuối tuần này?,"Xin vui lòng cung cấp thông tin ngày và giờ để chúng tôi kiểm tra."
+reservation,Có thể đặt bàn cho 10 người vào tối nay không?,"Chúng tôi sẽ kiểm tra và phản hồi sớm nhất có thể. Cảm ơn bạn đã lựa chọn chúng tôi."
+
+intent,pattern,response
+menu,Bạn có thực đơn món ăn nào không?,"Thực đơn của chúng tôi bao gồm các món nướng như Ba chỉ bò Mỹ, Thịt vai bò và nhiều món khác."
+menu,Nhà hàng có món ăn chay không?,"Xin lỗi, Nhà hàng chúng tôi không phục vụ món chay."
+menu,Các món ăn trong thực đơn của bạn là gì?,"Thực đơn của chúng tôi gồm Ba chỉ bò Mỹ, Thịt vai bò và nhiều món hấp dẫn khác."
+menu,Có món gì mới trong thực đơn không?,"Chúng tôi vừa bổ sung món Bạch tuộc nướng và Hải sản sốt Thái vào thực đơn."
+menu,Thực đơn có món nào đặc biệt không?,"Món đặc biệt của chúng tôi là Bò tơ nướng mọi và Ba chỉ bò Mỹ ."
+
+intent,pattern,response
+payment,Tôi có thể thanh toán bằng cách nào?,"Bạn có thể thanh toán bằng tiền mặt hoặc thẻ tín dụng tại quầy thu ngân."
+payment,Nhà hàng có chấp nhận thanh toán qua thẻ không?,"Có, chúng tôi chấp nhận thanh toán qua thẻ tín dụng và thẻ ghi nợ."
+payment,Tôi có thể thanh toán qua ví điện tử không?,"Hiện tại chúng tôi chưa hỗ trợ thanh toán qua ví điện tử, nhưng bạn có thể dùng thẻ tín dụng."
+payment,Tôi có thể trả tiền qua chuyển khoản không?,"Chúng tôi không hỗ trợ thanh toán qua chuyển khoản, vui lòng thanh toán trực tiếp tại quầy."
+
+intent,pattern,response
+feedback,Bạn cảm thấy thế nào về dịch vụ của chúng tôi?,"Chúng tôi rất mong nhận được phản hồi từ bạn để cải thiện dịch vụ!"
+feedback,Bạn có hài lòng với món ăn không?,"Chúng tôi rất vui khi biết bạn hài lòng với món ăn. Hãy cho chúng tôi biết nếu bạn có góp ý!"
+feedback,Món ăn của chúng tôi có ngon không?,"Chúng tôi rất mong muốn nghe ý kiến của bạn về món ăn để cải thiện chất lượng."
+feedback,Phản hồi của bạn giúp chúng tôi rất nhiều. Cảm ơn bạn!,"Chúng tôi rất vui khi nghe ý kiến của bạn. Cảm ơn bạn đã giúp chúng tôi hoàn thiện hơn!"
