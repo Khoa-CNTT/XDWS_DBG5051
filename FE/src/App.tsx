@@ -8,7 +8,7 @@ import QrOrdering from './pages/QrOrdering/QrOrdering'
 import Admin from './pages/Admin/Admin'
 import Staff from './pages/Staff/Staff'
 import { OrderProvider } from './context/OrderContext'
-import { AuthProvider } from './context/AuthContext'
+// import { AuthProvider } from './context/AuthContext'
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import LoginForm from './components/Login/LoginForm'
 
@@ -16,7 +16,6 @@ import GuestRoute from './components/Router/GuestRoute'
 import PrivateRoute from './components/Router/PrivateRoute'
 function App() {
   return (
-    <AuthProvider>
       <OrderProvider>
         <ScrollToTop />
         <div className="app">
@@ -42,9 +41,6 @@ function App() {
               </PrivateRoute>
             } />
 
-
-
-            {/* <Route path="/kitchen" element={""} /> */}
             <Route path="/order/:tableId" element={<QrOrdering />} />
             <Route
               path="*"
@@ -65,7 +61,6 @@ function App() {
           </Routes>
         </div>
       </OrderProvider>
-    </AuthProvider>
   )
 }
 

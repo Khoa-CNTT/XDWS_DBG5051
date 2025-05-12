@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PaymentManagement from '../../components/Manage/Payment/Payment';
-import OrderManagement from '../../components/Manage/Order/Order';
 import './Staff.scss';
 import { FaHome, FaClipboardList, FaBars, FaSignOutAlt, FaMoneyBillWave } from 'react-icons/fa';
 
@@ -27,50 +26,50 @@ const Staff = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
-  // if (!isAuthenticated) {
-  //   return (
-  //     <div className="staff-login-page">
-  //       <div className="container">
-  //         <div className="login-box">
-  //           <div className="login-header">
-  //             <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
-  //             <h1>Đăng nhập nhân viên</h1>
-  //           </div>
+  if (!isAuthenticated) {
+    return (
+      <div className="staff-login-page">
+        <div className="container">
+          <div className="login-box">
+            <div className="login-header">
+              <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
+              <h1>Đăng nhập nhân viên</h1>
+            </div>
 
-  //           <form onSubmit={handleLogin}>
-  //             {error && <div className="error-message">{error}</div>}
+            <form onSubmit={handleLogin}>
+              {error && <div className="error-message">{error}</div>}
 
-  //             <div className="form-group">
-  //               <label htmlFor="username">Tên đăng nhập</label>
-  //               <input
-  //                 type="text"
-  //                 id="username"
-  //                 value={username}
-  //                 onChange={(e) => setUsername(e.target.value)}
-  //                 required
-  //               />
-  //             </div>
+              <div className="form-group">
+                <label htmlFor="username">Tên đăng nhập</label>
+                <input
+                  type="text"
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
 
-  //             <div className="form-group">
-  //               <label htmlFor="password">Mật khẩu</label>
-  //               <input
-  //                 type="password"
-  //                 id="password"
-  //                 value={password}
-  //                 onChange={(e) => setPassword(e.target.value)}
-  //                 required
-  //               />
-  //             </div>
+              <div className="form-group">
+                <label htmlFor="password">Mật khẩu</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-  //             <button type="submit" className="login-btn">
-  //               Đăng nhập
-  //             </button>
-  //           </form>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+              <button type="submit" className="login-btn">
+                Đăng nhập
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="staff-dashboard">
@@ -132,7 +131,7 @@ const Staff = () => {
 
         <div className="content-body">
           {activeTab === 'dashboard' && <div className="placeholder-content">Xin chào nhân viên!</div>}
-          {activeTab === 'orders' && <OrderManagement />}
+          {activeTab === 'orders' && <div className="placeholder-content">Tính năng đang phát triển</div>}
           {activeTab === 'payments' && <PaymentManagement />}
         </div>
       </div>

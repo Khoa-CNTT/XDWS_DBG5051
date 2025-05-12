@@ -23,13 +23,6 @@ const loginForm = () => {
             console.log('TOKEN:', token);
             setError('');
 
-<<<<<<< HEAD
-
-            if (role === 'staff') {
-                navigate('/staff');
-            } else {
-                navigate('/admin');
-=======
             // Lấy thông tin người dùng và kiểm tra role
             try {
                 const userInfo = await getUserInfo();
@@ -41,24 +34,23 @@ const loginForm = () => {
                 // Kiểm tra role và điều hướng
                 if (userInfo.role === 'admin') {
                     navigate('/admin');
-                } else if (userInfo.role === 'employee') {
-                    navigate('/employee');
+                } else if (userInfo.role === 'staff') {
+                    navigate('/staff');
                 } else {
                     setError('Không có quyền truy cập');
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy thông tin người dùng:', error);
                 setError('Không thể lấy thông tin người dùng');
->>>>>>> Vuong
             }
 
         } catch (error: any) {
-            console.error('Đăng nhập thất bại:', error.response);
+            console.error(error);
 
             if (error.response && error.response.data && error.response.data.message) {
                 setError(error.response.data.message);
             } else {
-                setError(` Lỗi đăng nhập ${error.response.message}` || 'Đăng nhập thất bại, vui lòng thử lại.');
+                setError('Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };

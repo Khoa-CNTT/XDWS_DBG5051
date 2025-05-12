@@ -26,11 +26,6 @@ const Admin = () => {
     navigate('/login');
   };
 
-<<<<<<< HEAD
-
-  const role = localStorage.getItem('role');
-=======
->>>>>>> Vuong
   return (
     <div className="admin-dashboard">
       <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -57,20 +52,13 @@ const Admin = () => {
             <FaQrcode size={20} />
             {!isSidebarCollapsed && <span>Mã QR đặt món</span>}
           </div>
-
-          {
-            role === 'staff' ?
-              <div
-                className={`sidebar-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
-                onClick={() => setActiveTab('orders')}
-              >
-                <FaClipboardList size={20} />
-                {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
-
-              </div>
-              : ''
-
-          }
+          <div
+            className={`sidebar-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            <FaClipboardList size={20} />
+            {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
+          </div>
           <div
             className={`sidebar-menu-item ${activeTab === 'cate' ? 'active' : ''}`}
             onClick={() => setActiveTab('cate')}
