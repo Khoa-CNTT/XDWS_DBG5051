@@ -49,6 +49,7 @@ const Menu = () => {
   const [priceFilterPerformed, setPriceFilterPerformed] = useState<boolean>(false);
   const [priceFilterError, setPriceFilterError] = useState<string>('');
 
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -289,6 +290,12 @@ const Menu = () => {
     return <div className="error">{error}</div>;
   }
 
+  const getImageUrl = (image: string | null) => {
+    if (!image) return '/vite.svg';
+    if (image.startsWith('http')) return image;
+    return `http://localhost:8000/upload/menu/${image}`;
+  };
+
   return (
     <div className="menu-page">
       <div className="container">
@@ -434,7 +441,7 @@ const Menu = () => {
                     <div key={item.id} className="menu-item">
                       {item.image && (
                         <div className="item-image">
-                          <img src={item.image} alt={item.name} />
+                          <img src={getImageUrl(item.image)} alt={item.name} />
                         </div>
                       )}
                       <div className="item-details">

@@ -1,0 +1,120 @@
+.chatbox {
+    width: 100%;
+    max-width: 400px;
+    height: 600px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 20px auto;
+
+    h2 {
+        background: #4a90e2;
+        color: white;
+        margin: 0;
+        padding: 15px;
+        text-align: center;
+        font-size: 1.2rem;
+    }
+
+    .chat-window {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f5f7fb;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+
+            span {
+                display: inline-block;
+                padding: 10px 15px;
+                border-radius: 15px;
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+
+            &.user {
+                margin-left: auto;
+
+                span {
+                    background: #4a90e2;
+                    color: white;
+                    border-bottom-right-radius: 5px;
+                }
+            }
+
+            &.bot {
+                margin-right: auto;
+
+                span {
+                    background: white;
+                    color: #333;
+                    border-bottom-left-radius: 5px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                }
+            }
+        }
+    }
+
+    .input-area {
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+
+            &:focus {
+                border-color: #4a90e2;
+            }
+
+            &::placeholder {
+                color: #999;
+            }
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background: #357abd;
+            }
+
+            &:active {
+                transform: scale(0.98);
+            }
+        }
+    }
+}

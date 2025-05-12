@@ -19,7 +19,7 @@ const Home = () => {
           <div className="intro-content">
             <div className="intro-text">
               <p>
-               Smart Order – Quán thịt nướng Hàn Quốc Ngon Số 1 sẽ đưa bạn
+                Smart Order – Quán thịt nướng Hàn Quốc Ngon Số 1 sẽ đưa bạn
                 ghé đến những quán thịt nướng tại thành phố Seoul đã tạo nên
                 danh tiếng cho nền ẩm thực xứ kim chi. Nếu đã một lần thưởng
                 thức thịt nướng tại Smart Order, bạn sẽ không thể quên được

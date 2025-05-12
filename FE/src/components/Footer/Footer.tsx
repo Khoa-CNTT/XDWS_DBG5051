@@ -1,8 +1,17 @@
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaYoutube, FaPhone } from 'react-icons/fa';
 import './Footer.scss';
+import { FaMessage } from 'react-icons/fa6';
+import { useState } from 'react';
+import ChatBot from '../ChatBot/ChatBot';
 
 const Footer = () => {
+
+  const [showChatBot, setShowChatBot] = useState(false);
+
+  const handleMessage = () =>{
+    setShowChatBot(!showChatBot);
+  }
   return (
     <footer className="footer">
       <div className="footer-main">
@@ -59,10 +68,21 @@ const Footer = () => {
           <p>© 2025 Smart Oder ., JSC. All rights reserved</p>
         </div>
       </div>
-
-      <a href="tel:19006622" className="hotline-btn">
+      {showChatBot && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 100,
+            right: 30,
+            zIndex: 1000,
+          }}
+        >
+          <ChatBot />
+        </div>
+      )}
+      <a onClick={handleMessage} className="hotline-btn">
         <div className="hotline-btn-circle">
-          <FaPhone />
+          <FaMessage />
         </div>
       </a>
     </footer>
