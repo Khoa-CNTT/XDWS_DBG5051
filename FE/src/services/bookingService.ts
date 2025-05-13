@@ -1,38 +1,33 @@
 import axios from 'axios';
-import { authHeader } from '../../src/Api/Login';
+import { authHeader } from '../Api/Login';
 
 const API_URL = 'http://localhost:8000/api';
 
 export interface Booking {
   id: string;
+  customer_name: string;
   name: string;
   email: string;
   phone: string;
   guests: number;
   booking_date: string;
+  booking_time: string;
   time: string;
-  notes?: string;
-  withChildren: boolean;
-  birthday: boolean;
-  window: boolean;
-  childrenChair: boolean;
+  note?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   tableId?: string;
-  createdAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BookingRequest {
-  name: string;
+  customer_name: string;
   email: string;
   phone: string;
   guests: number;
   booking_date: string;
-  time: string;
-  notes?: string;
-  withChildren: boolean;
-  birthday: boolean;
-  window: boolean;
-  childrenChair: boolean;
+  booking_time: string;
+  note?: string;
 }
 
 export const bookingService = {

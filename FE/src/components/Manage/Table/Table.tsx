@@ -5,6 +5,7 @@ import { Toast } from '../../Toast/Toast';
 import { tableService, Table, TableRequest } from '../../../services/tableService';
 import { bookingService, Booking } from '../../../services/bookingService';
 import LoadingSpinner from '../../Loading/LoadingSpinner';
+import axios from 'axios';
 
 const TableManagement = () => {
   // State cho danh sách bàn
@@ -97,11 +98,12 @@ const TableManagement = () => {
   // Lọc bàn phù hợp cho đặt bàn
   useEffect(() => {
     if (selectedReservation) {
-      // Lọc bàn trống
-      const suitableTables = tables.filter(table =>
+      // Chỉ lọc các bàn trống
+      const suitableTables = tables.filter(table => 
         table.status === 'available'
       );
       
+      console.log('Available tables:', suitableTables);
       setAvailableTablesForReservation(suitableTables);
       
       // Reset selected table
@@ -177,28 +179,31 @@ const TableManagement = () => {
   // Xử lý thay đổi trạng thái bàn
   const handleStatusChange = async (tableId: string, newStatus: 'available' | 'reserved' | 'occupied') => {
     try {
-      const table = tables.find(t => t.id === tableId);
-      if (!table) return;
-      
-      const updatedTable = await tableService.updateTable(tableId, { 
-        table_number: table.table_number,
-        status: newStatus 
-      });
+      const current = tables.find(t => t.id === tableId);
+      if (!current) return;
+  
+      // Gửi chỉ trạng thái (status) mới
+      const updatedTable = await tableService.updateTableStatus(tableId, newStatus);
+  
       setTables(prev =>
-        prev.map(table =>
-          table.id === tableId ? updatedTable : table
-        )
+        prev.map(table => table.id === tableId ? updatedTable : table)
       );
+  
       showToastMessage(`Đã cập nhật trạng thái bàn thành ${
         newStatus === 'available' ? 'Trống' :
         newStatus === 'reserved' ? 'Đã đặt' : 'Đang sử dụng'
       }`);
     } catch (error) {
       console.error('Error updating table status:', error);
-      showToastMessage('Không thể cập nhật trạng thái bàn', 'error');
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || 'Không thể cập nhật trạng thái bàn';
+        showToastMessage(`Lỗi: ${errorMessage}`, 'error');
+      } else {
+        showToastMessage('Không thể cập nhật trạng thái bàn', 'error');
+      }
     }
-  };
-
+};
+  
   // Xử lý xóa bàn
   const handleDeleteTable = async (tableId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
@@ -213,6 +218,31 @@ const TableManagement = () => {
     }
   };
 
+  // Validate form
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.table_number?.trim()) {
+      newErrors.table_number = 'Vui lòng nhập số bàn';
+    } else if (isEditing && formData.table_number === currentTable?.table_number) {
+      // Nếu đang sửa và số bàn không thay đổi thì không cần kiểm tra trùng
+      return true;
+    } else {
+      // Kiểm tra số bàn trùng
+      const isDuplicate = tables.some(table => 
+        table.table_number === formData.table_number && 
+        table.id !== currentTable?.id
+      );
+      
+      if (isDuplicate) {
+        newErrors.table_number = 'Số bàn này đã tồn tại';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Xử lý submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,16 +251,30 @@ const TableManagement = () => {
       try {
         if (isEditing && currentTable) {
           // Update existing table
-          const updatedTable = await tableService.updateTable(currentTable.id, formData);
+          const updatedTable = await tableService.updateTable(currentTable.id, {
+            table_number: formData.table_number,
+            status: formData.status
+          });          
+          
           setTables(prev =>
             prev.map(table =>
               table.id === currentTable.id ? updatedTable : table
             )
           );
+          
           showToastMessage('Cập nhật bàn thành công');
         } else {
           // Add new table
-          const newTable = await tableService.createTable(formData);
+          if (!formData.table_number) {
+            showToastMessage('Vui lòng nhập số bàn', 'error');
+            return;
+          }
+          
+          const newTable = await tableService.createTable({
+            table_number: formData.table_number,
+            status: formData.status
+          });
+          
           setTables(prev => [...prev, newTable]);
           showToastMessage('Thêm bàn mới thành công');
         }
@@ -239,21 +283,21 @@ const TableManagement = () => {
         setCurrentTable(null);
       } catch (error) {
         console.error('Error saving table:', error);
-        showToastMessage('Không thể lưu thông tin bàn', 'error');
+        if (axios.isAxiosError(error)) {
+          const errorMessage = error.response?.data?.message || 'Không thể lưu thông tin bàn';
+          console.error('Server response:', error.response?.data);
+          if (error.response?.status === 422) {
+            showToastMessage(`Lỗi: ${errorMessage}`, 'error');
+          } else if (error.response?.status === 500) {
+            showToastMessage('Lỗi server: Vui lòng thử lại sau', 'error');
+          } else {
+            showToastMessage(`Lỗi: ${errorMessage}`, 'error');
+          }
+        } else {
+          showToastMessage('Không thể lưu thông tin bàn', 'error');
+        }
       }
     }
-  };
-
-  // Validate form
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.table_number.trim()) {
-      newErrors.table_number = 'Vui lòng nhập số bàn';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   // Handle input change
@@ -293,19 +337,48 @@ const TableManagement = () => {
 
   // Format date for display
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN');
+    console.log('Formatting date:', dateStr);
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('vi-VN');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
   };
 
   // Format time for display
   const formatTime = (timeStr: string) => {
+    console.log('Formatting time:', timeStr);
+    if (!timeStr) return '';
+    // Nếu timeStr đã ở định dạng HH:mm thì trả về luôn
+    if (/^\d{2}:\d{2}$/.test(timeStr)) {
+      return timeStr;
+    }
+    // Nếu là booking_time thì sử dụng nó
     return timeStr;
   };
 
   // Format date time for display
   const formatDateTime = (dateTimeStr: string) => {
-    const date = new Date(dateTimeStr);
-    return date.toLocaleString('vi-VN');
+    console.log('Formatting datetime:', dateTimeStr);
+    if (!dateTimeStr) return '';
+    try {
+      const date = new Date(dateTimeStr);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting datetime:', error);
+      return '';
+    }
   };
 
   return (
@@ -436,30 +509,33 @@ const TableManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingReservations.map(reservation => (
-                    <tr key={reservation.id}>
-                      <td>{reservation.id}</td>
-                      <td>{formatDate(reservation.booking_date)}</td>
-                      <td>{formatTime(reservation.time)}</td>
-                      <td>{reservation.guests} người</td>
-                      <td>{reservation.name}</td>
-                      <td>
-                        <div>📞 {reservation.phone}</div>
-                        <div>✉️ {reservation.email}</div>
-                      </td>
-                      <td>{formatDateTime(reservation.createdAt)}</td>
-                      <td>
-                        <div className="table-row-actions">
-                          <button
-                            className="view-btn"
-                            onClick={() => handleViewReservationDetail(reservation)}
-                          >
-                            Xem chi tiết
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {pendingReservations.map(reservation => {
+                    console.log('Reservation data:', reservation);
+                    return (
+                      <tr key={reservation.id}>
+                        <td>{reservation.id}</td>
+                        <td>{formatDate(reservation.booking_date)}</td>
+                        <td>{formatTime(reservation.booking_time)}</td>
+                        <td>{reservation.guests} người</td>
+                        <td>{reservation.customer_name || reservation.name}</td>
+                        <td>
+                          <div>📞 {reservation.phone}</div>
+                          <div>✉️ {reservation.email}</div>
+                        </td>
+                        <td>{formatDateTime(reservation.created_at)}</td>
+                        <td>
+                          <div className="table-row-actions">
+                            <button
+                              className="view-btn"
+                              onClick={() => handleViewReservationDetail(reservation)}
+                            >
+                              Xem chi tiết
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (
@@ -538,11 +614,18 @@ const TableManagement = () => {
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Giờ đặt:</span>
-                    <span className="detail-value">{formatTime(selectedReservation.time)}</span>
+                    <span className="detail-value">{formatTime(selectedReservation.booking_time)}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Số khách:</span>
                     <span className="detail-value">{selectedReservation.guests} người</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Trạng thái:</span>
+                    <span className={`detail-value status-${selectedReservation.status}`}>
+                      {selectedReservation.status === 'pending' ? 'Chờ xác nhận' :
+                       selectedReservation.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -552,7 +635,7 @@ const TableManagement = () => {
                 <div className="detail-grid">
                   <div className="detail-item">
                     <span className="detail-label">Họ tên:</span>
-                    <span className="detail-value">{selectedReservation.name}</span>
+                    <span className="detail-value">{selectedReservation.customer_name || selectedReservation.name}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Số điện thoại:</span>
@@ -566,28 +649,14 @@ const TableManagement = () => {
               </div>
               
               <div className="detail-section">
-                <h3>Yêu cầu đặc biệt</h3>
-                <div className="special-requests">
-                  {selectedReservation.withChildren && (
-                    <div className="request-tag">Có trẻ em</div>
-                  )}
-                  {selectedReservation.birthday && (
-                    <div className="request-tag">Tiệc sinh nhật</div>
-                  )}
-                  {selectedReservation.window && (
-                    <div className="request-tag">Bàn gần cửa sổ</div>
-                  )}
-                  {selectedReservation.childrenChair && (
-                    <div className="request-tag">Cần ghế trẻ em</div>
+                <h3>Ghi chú</h3>
+                <div className="notes-section">
+                  {selectedReservation.note ? (
+                    <p className="note-content">{selectedReservation.note}</p>
+                  ) : (
+                    <p className="no-note">Không có ghi chú</p>
                   )}
                 </div>
-                
-                {selectedReservation.notes && (
-                  <div className="notes-section">
-                    <h4>Ghi chú:</h4>
-                    <p>{selectedReservation.notes}</p>
-                  </div>
-                )}
               </div>
               
               <div className="detail-section">
@@ -598,14 +667,22 @@ const TableManagement = () => {
                     id="table-select"
                     value={selectedTableForReservation}
                     onChange={handleTableSelectionChange}
+                    className="table-select"
                   >
                     <option value="">-- Chọn bàn --</option>
-                    {availableTablesForReservation.map(table => (
-                      <option key={table.id} value={table.id}>
-                        Bàn {table.table_number}
-                      </option>
-                    ))}
+                    {availableTablesForReservation.length > 0 ? (
+                      availableTablesForReservation.map(table => (
+                        <option key={table.id} value={table.id}>
+                          Bàn {table.table_number}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>Không có bàn trống</option>
+                    )}
                   </select>
+                  {availableTablesForReservation.length === 0 && (
+                    <p className="no-tables-message">Hiện tại không có bàn trống</p>
+                  )}
                 </div>
                 
                 <div className="confirmation-actions">

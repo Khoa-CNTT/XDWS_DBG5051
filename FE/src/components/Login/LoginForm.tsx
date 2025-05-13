@@ -34,8 +34,8 @@ const loginForm = () => {
                 // Kiểm tra role và điều hướng
                 if (userInfo.role === 'admin') {
                     navigate('/admin');
-                } else if (userInfo.role === 'employee') {
-                    navigate('/employee');
+                } else if (userInfo.role === 'staff') {
+                    navigate('/staff');
                 } else {
                     setError('Không có quyền truy cập');
                 }

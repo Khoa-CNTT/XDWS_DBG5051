@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaMoneyBillWave, FaUniversity, FaPrint, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaMoneyBillWave, FaUniversity, FaPrint, FaCheck, FaTimes, FaHistory } from 'react-icons/fa';
 
 interface OrderItem {
   id: number;
@@ -31,6 +31,8 @@ const PaymentManagement = () => {
   const [showQRCode, setShowQRCode] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'pending' | 'history'>('pending');
+  const [historySearchTerm, setHistorySearchTerm] = useState<string>('');
 
   useEffect(() => {
     const mockOrders: Order[] = [
@@ -70,6 +72,34 @@ const PaymentManagement = () => {
         status: 'pending',
         paymentStatus: 'unpaid',
         createdAt: new Date(2025, 3, 20, 13, 15)
+      },
+      {
+        id: 4,
+        tableNumber: 'A03',
+        items: [
+          { id: 8, name: 'Gỏi cuốn', quantity: 2, price: 45000 },
+          { id: 9, name: 'Bia Sài Gòn', quantity: 2, price: 30000 }
+        ],
+        total: 150000,
+        status: 'completed',
+        paymentStatus: 'paid',
+        paymentMethod: 'cash',
+        amountReceived: 200000,
+        amountReturned: 50000,
+        createdAt: new Date(2025, 3, 19, 18, 30)
+      },
+      {
+        id: 5,
+        tableNumber: 'A07',
+        items: [
+          { id: 10, name: 'Lẩu thái', quantity: 1, price: 250000 },
+          { id: 11, name: 'Nước suối', quantity: 4, price: 15000 }
+        ],
+        total: 310000,
+        status: 'completed',
+        paymentStatus: 'paid',
+        paymentMethod: 'bank',
+        createdAt: new Date(2025, 3, 19, 19, 15)
       }
     ];
     
@@ -178,30 +208,59 @@ const PaymentManagement = () => {
   };
 
   const filteredOrders = orders.filter(order => 
-    order.paymentStatus === 'unpaid' && 
-    (order.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     order.id.toString().includes(searchTerm))
+    viewMode === 'pending' 
+      ? (order.paymentStatus === 'unpaid' && 
+         (order.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          order.id.toString().includes(searchTerm)))
+      : (order.paymentStatus === 'paid' && 
+         (order.tableNumber.toLowerCase().includes(historySearchTerm.toLowerCase()) || 
+          order.id.toString().includes(historySearchTerm)))
   );
 
   return (
     <div className="payment-management">
       <div className="payment-management-header">
         <h2>Quản lý thanh toán</h2>
+        <div className="view-toggle">
+          <button 
+            className={`toggle-btn ${viewMode === 'pending' ? 'active' : ''}`}
+            onClick={() => setViewMode('pending')}
+          >
+            Chờ thanh toán
+          </button>
+          <button 
+            className={`toggle-btn ${viewMode === 'history' ? 'active' : ''}`}
+            onClick={() => {
+              setViewMode('history');
+              resetPaymentState();
+            }}
+          >
+            <FaHistory /> Lịch sử thanh toán
+          </button>
+        </div>
         <div className="search-bar">
           <input 
             type="text" 
-            placeholder="Tìm kiếm theo số bàn hoặc mã đơn hàng..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={viewMode === 'pending' ? "Tìm kiếm đơn chờ thanh toán..." : "Tìm kiếm lịch sử thanh toán..."}
+            value={viewMode === 'pending' ? searchTerm : historySearchTerm}
+            onChange={(e) => viewMode === 'pending' 
+              ? setSearchTerm(e.target.value) 
+              : setHistorySearchTerm(e.target.value)
+            }
           />
         </div>
       </div>
 
       <div className="payment-management-content">
         <div className="orders-list">
-          <h3>Đơn hàng chờ thanh toán</h3>
+          <h3>{viewMode === 'pending' ? 'Đơn hàng chờ thanh toán' : 'Lịch sử thanh toán'}</h3>
           {filteredOrders.length === 0 ? (
-            <div className="no-orders">Không có đơn hàng nào chờ thanh toán</div>
+            <div className="no-orders">
+              {viewMode === 'pending' 
+                ? 'Không có đơn hàng nào chờ thanh toán' 
+                : 'Không có lịch sử thanh toán nào'
+              }
+            </div>
           ) : (
             <div className="orders-table">
               <table>
@@ -211,6 +270,7 @@ const PaymentManagement = () => {
                     <th>Bàn số</th>
                     <th>Tổng tiền</th>
                     <th>Thời gian</th>
+                    {viewMode === 'history' && <th>Phương thức</th>}
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -221,6 +281,9 @@ const PaymentManagement = () => {
                       <td>{order.tableNumber}</td>
                       <td>{formatCurrency(order.total)}</td>
                       <td>{formatDateTime(order.createdAt)}</td>
+                      {viewMode === 'history' && (
+                        <td>{order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</td>
+                      )}
                       <td>
                         <button 
                           className="view-btn"
@@ -240,23 +303,57 @@ const PaymentManagement = () => {
         <div className="payment-details">
           {selectedOrder ? (
             <>
-              {paymentCompleted ? (
+              {paymentCompleted || (viewMode === 'history' && selectedOrder.paymentStatus === 'paid') ? (
                 <div className="payment-success">
                   <div className="success-icon">
                     <FaCheck size={40} />
                   </div>
-                  <h3>Thanh toán thành công!</h3>
+                  <h3>{viewMode === 'history' ? 'Chi tiết thanh toán' : 'Thanh toán thành công!'}</h3>
                   <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.tableNumber}</p>
                   <p>Phương thức: {selectedOrder.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</p>
                   {selectedOrder.paymentMethod === 'cash' && (
                     <>
-                      <p>Số tiền nhận: {formatCurrency(amountReceived)}</p>
-                      <p>Tiền thừa: {formatCurrency(amountReturned)}</p>
+                      <p>Số tiền nhận: {formatCurrency(selectedOrder.amountReceived || amountReceived)}</p>
+                      <p>Tiền thừa: {formatCurrency(selectedOrder.amountReturned || amountReturned)}</p>
                     </>
                   )}
-                  <button className="print-btn" onClick={handlePrintReceipt}>
-                    <FaPrint /> In hóa đơn
-                  </button>
+                  <p>Thời gian: {formatDateTime(selectedOrder.createdAt)}</p>
+                  
+                  <div className="order-items">
+                    <h4>Danh sách món</h4>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Món</th>
+                          <th>SL</th>
+                          <th>Đơn giá</th>
+                          <th>Thành tiền</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedOrder.items.map(item => (
+                          <tr key={item.id}>
+                            <td>{item.name}</td>
+                            <td>{item.quantity}</td>
+                            <td>{formatCurrency(item.price)}</td>
+                            <td>{formatCurrency(item.price * item.quantity)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colSpan={3}><strong>Tổng cộng:</strong></td>
+                          <td><strong>{formatCurrency(selectedOrder.total)}</strong></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  
+                  {viewMode !== 'history' && (
+                    <button className="print-btn" onClick={handlePrintReceipt}>
+                      <FaPrint /> In hóa đơn
+                    </button>
+                  )}
                   <button className="back-btn" onClick={resetPaymentState}>
                     Quay lại danh sách
                   </button>
@@ -397,7 +494,7 @@ const PaymentManagement = () => {
             </>
           ) : (
             <div className="no-order-selected">
-              <p>Vui lòng chọn đơn hàng để thanh toán</p>
+              <p>Vui lòng chọn đơn hàng để {viewMode === 'pending' ? 'thanh toán' : 'xem chi tiết'}</p>
             </div>
           )}
         </div>

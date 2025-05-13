@@ -244,10 +244,6 @@ const QrOrdering = () => {
     setOrderStatus(null);
   }, []);
 
-  // Handle login navigation
-  const handleLogin = useCallback(() => {
-    navigate('/login', { state: { from: { pathname: `/order/${tableId}` } } });
-  }, [navigate, tableId]);
 
   // Toggle cart section visibility
   const toggleCartSection = useCallback(() => {
@@ -466,15 +462,6 @@ const QrOrdering = () => {
                     >
                       Quay lại thực đơn
                     </button>
-                  )}
-
-                  {cart.length > 0 && (
-                    <div className="auth-prompt">
-                      <p>Đăng nhập để lưu đơn hàng vào lịch sử</p>
-                      <button className="login-btn" onClick={handleLogin}>
-                        Đăng nhập
-                      </button>
-                    </div>
                   )}
                 </div>
               </div>
