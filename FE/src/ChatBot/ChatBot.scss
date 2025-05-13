@@ -1,0 +1,188 @@
+.chatbox {
+    width: 400px;
+    max-width: 400px;
+    height: 600px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 20px auto;
+    position: fixed;
+    bottom: 65px;
+    right: 20px;
+    z-index: 1000;
+
+    h2 {
+        background-color: var(--primary-color);
+        color: white;
+        margin: 0;
+        padding: 15px;
+        text-align: center;
+        font-size: 1.2rem;
+    }
+
+    .chat-window {
+        flex: 1;
+        padding: 20px;
+        overflow-y: scroll;
+        background: #f5f7fb;
+        height: calc(100% - 130px);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            width: 100%;
+
+            .message-content {
+                display: inline-block;
+                padding: 10px 15px;
+                border-radius: 15px;
+                font-size: 0.95rem;
+                line-height: 1.4;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+                max-width: 80%;
+                min-width: 100px;
+                width: auto;
+
+                &.loading {
+                    background: white;
+                    padding: 15px;
+                    min-width: 60px;
+
+                    .loading-dots {
+                        display: flex;
+                        gap: 4px;
+                        justify-content: center;
+                        align-items: center;
+
+                        span {
+                            width: 8px;
+                            height: 8px;
+                            background: #888;
+                            border-radius: 50%;
+                            animation: bounce 1.4s infinite ease-in-out both;
+
+                            &:nth-child(1) {
+                                animation-delay: -0.32s;
+                            }
+
+                            &:nth-child(2) {
+                                animation-delay: -0.16s;
+                            }
+                        }
+                    }
+                }
+            }
+
+            &.user {
+                justify-content: flex-end;
+                margin-left: auto;
+
+                .message-content {
+                    background-color: var(--primary-color);
+                    color: white;
+                    border-bottom-right-radius: 5px;
+                }
+            }
+
+            &.bot {
+                justify-content: flex-start;
+                margin-right: auto;
+
+                .message-content {
+                    background: white;
+                    color: #333;
+                    border-bottom-left-radius: 5px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+                }
+            }
+        }
+    }
+
+    .input-area {
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+
+            &:focus {
+                border-color: #4a90e2;
+            }
+
+            &::placeholder {
+                color: #999;
+            }
+
+            &:disabled {
+                background: #f5f5f5;
+                cursor: not-allowed;
+            }
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: darken(#f08404, 10%);
+            }
+
+            &:active {
+                transform: scale(0.98);
+            }
+
+            &:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+
+                &:hover {
+                    background-color: #ccc;
+                }
+            }
+        }
+    }
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}

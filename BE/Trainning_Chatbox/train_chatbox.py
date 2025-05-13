@@ -6,7 +6,8 @@ from sklearn.pipeline import make_pipeline
 import random
 
 # Load dữ liệu và huấn luyện mô hình
-df = pd.read_csv("training_data.csv")
+# df = pd.read_csv("training_data.csv")
+df = pd.read_csv(r"d:\STUDY\Code_KLTN\Main\XDWS_DBG5051\BE\Trainning_Chatbox\training_data.csv")
 model = make_pipeline(TfidfVectorizer(), MultinomialNB())
 model.fit(df['pattern'], df['intent'])
 

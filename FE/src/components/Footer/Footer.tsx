@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaYoutube, FaPhone } from 'react-icons/fa';
 import './Footer.scss';
+import { FaMessage } from 'react-icons/fa6';
+import { useState } from 'react';
+import ChatBot from '../../ChatBot/ChatBot';
 
 const Footer = () => {
+
+  const [showChat, setShowChat] = useState(false)
   return (
     <footer className="footer">
       <div className="footer-main">
@@ -60,11 +65,25 @@ const Footer = () => {
         </div>
       </div>
 
-      <a href="tel:19006622" className="hotline-btn">
+      {showChat && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 65,
+            right: 40,
+            zIndex: 1000,
+          }}
+        >
+          <ChatBot />
+        </div>
+      )}
+      <a className="hotline-btn" onClick={() => setShowChat(!showChat)}>
         <div className="hotline-btn-circle">
-          <FaPhone />
+          <FaMessage />
         </div>
       </a>
+
+
     </footer>
   );
 };
