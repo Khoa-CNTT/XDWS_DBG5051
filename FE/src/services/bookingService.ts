@@ -14,10 +14,6 @@ export interface Booking {
   booking_time: string;
   time: string;
   note?: string;
-  withChildren: boolean;
-  birthday: boolean;
-  window: boolean;
-  childrenChair: boolean;
   status: 'pending' | 'confirmed' | 'cancelled';
   tableId?: string;
   created_at: string;

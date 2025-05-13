@@ -15,6 +15,33 @@
             margin: 0;
         }
 
+        .view-toggle {
+            display: flex;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            border: 1px solid var(--gray);
+
+            .toggle-btn {
+                padding: var(--spacing-sm) var(--spacing-lg);
+                background-color: var(--white);
+                border: none;
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-xs);
+                font-weight: 500;
+                transition: all 0.3s;
+
+                &.active {
+                    background-color: var(--primary-color);
+                    color: var(--white);
+                }
+
+                &:hover:not(.active) {
+                    background-color: var(--light-gray);
+                }
+            }
+        }
+
         .search-bar {
             width: 300px;
 
@@ -331,6 +358,24 @@
             button {
                 margin: var(--spacing-lg) auto 0;
                 min-width: 200px;
+            }
+
+            .order-items {
+                margin: var(--spacing-xl) 0;
+                text-align: left;
+
+                h4 {
+                    margin-bottom: var(--spacing-md);
+                    text-align: center;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    box-shadow: var(--box-shadow);
+                    border-radius: var(--border-radius-sm);
+                    overflow: hidden;
+                }
             }
         }
 

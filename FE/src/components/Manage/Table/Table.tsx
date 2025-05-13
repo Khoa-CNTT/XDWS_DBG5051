@@ -272,7 +272,7 @@ const TableManagement = () => {
           
           const newTable = await tableService.createTable({
             table_number: formData.table_number,
-            status: formData.status || 'available'
+            status: formData.status
           });
           
           setTables(prev => [...prev, newTable]);
