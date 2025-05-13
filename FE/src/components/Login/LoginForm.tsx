@@ -34,8 +34,8 @@ const loginForm = () => {
                 // Kiểm tra role và điều hướng
                 if (userInfo.role === 'admin') {
                     navigate('/admin');
-                } else if (userInfo.role === 'employee') {
-                    navigate('/employee');
+                } else if (userInfo.role === 'staff') {
+                    navigate('/staff');
                 } else {
                     setError('Không có quyền truy cập');
                 }
@@ -45,12 +45,12 @@ const loginForm = () => {
             }
 
         } catch (error: any) {
-            console.error('Đăng nhập thất bại:', error.response);
+            console.error(error);
 
             if (error.response && error.response.data && error.response.data.message) {
                 setError(error.response.data.message);
             } else {
-                setError(` Lỗi đăng nhập ${error.response.message}` || 'Đăng nhập thất bại, vui lòng thử lại.');
+                setError('Đăng nhập thất bại, vui lòng thử lại.');
             }
         }
     };

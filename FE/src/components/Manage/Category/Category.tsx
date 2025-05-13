@@ -35,7 +35,7 @@ const Category = () => {
     };
 
     const handleClose = () => {
-        setInitCate(null);
+        setInitCate(null)
         setShowAddForm(false)
     }
 
@@ -64,8 +64,8 @@ const Category = () => {
                 const res = await api.delete(`/admin/cate/${cate.id}`);
                 console.log('Xóa danh mục thành công:', res.data);
                 setCategory((prev) => prev.filter((item) => item.id !== cate.id));
-            } catch (error: any) {
-                console.error('Lỗi khi xóa danh mục:', error.response);
+            } catch (error) {
+                console.error('Lỗi khi xóa danh mục:', error);
             }
         }
     }
@@ -73,10 +73,7 @@ const Category = () => {
     return (
         <div className='Menu-Manage'>
             <div className='Head'>
-                <button className="add-btn" onClick={() => {
-                    setShowAddForm(true);
-                    setInitCate(null);
-                }} >+ Thêm Danh Mục Mới</button>
+                <button className="add-btn" onClick={() => setShowAddForm(true)} >+ Thêm Danh Mục Mới</button>
             </div>
 
             <div className='tb-body' >
@@ -97,11 +94,7 @@ const Category = () => {
                                     <td className="food-name">{cate?.name}</td>
                                     <td className="food-actions">
                                         <button className="btn-edit"
-                                            onClick={() => {
-                                                setInitCate(cate);
-                                                setShowAddForm(true);
-                                            }
-                                            }
+                                            onClick={() => handleEdit(cate)}
                                         > Sửa</button>
                                         <button className="btn-delete"
                                             onClick={() => handleDelete(cate)}

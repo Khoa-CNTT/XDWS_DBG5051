@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect, ReactElement, ChangeEvent } from "react";
 
+// import Category from "../Category/Category";
+// import './FoodForm.scss'
+
 import axios from "axios";
 
 interface AddCateFormProps {
@@ -21,10 +24,32 @@ const FoodForm = ({ onsave, cate, closeForm }: AddCateFormProps) => {
 
     const [name, setName] = useState(cate?.name || "");
 
+    useEffect(() => {
+        if (cate) {
+            setName(cate.name);
+        }
+    }, [cate]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/api/cate');
+                setName(response.data.data.map((item: CategoryType) => item.name));
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+
+
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
         e.preventDefault();
-        onsave({
+        const cateData = onsave({
             id: cate?.id ?? Date.now(),
             name,
             created_at: new Date().toISOString(),
@@ -32,14 +57,9 @@ const FoodForm = ({ onsave, cate, closeForm }: AddCateFormProps) => {
 
         });
 
+        console.log('fooddata:', cateData);
+
     };
-
-    // useEffect(() => {
-    //     if (cate) {
-    //         setName(cate.name);
-    //     }
-    // }, [cate]);
-
     return (
         <>
             <div className="edit-food-form" >

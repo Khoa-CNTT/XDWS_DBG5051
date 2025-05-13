@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './Booking.scss';
 import axios from 'axios';
 import { bookingService } from '../../services/bookingService';
+import { Toast } from '../../components/Toast/Toast';
 
 const Booking = () => {
   const [formData, setFormData] = useState({
@@ -12,13 +13,18 @@ const Booking = () => {
     booking_date: '',
     time: '',
     notes: '',
-    withChildren: false,
-    birthday: false,
-    window: false,
-    childrenChair: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+  }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -27,7 +33,6 @@ const Booking = () => {
       [name]: value
     }));
     
-    // Xóa lỗi khi người dùng sửa trường đó
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = {...prev};
@@ -35,14 +40,6 @@ const Booking = () => {
         return newErrors;
       });
     }
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: checked
-    }));
   };
 
   const validateForm = (): boolean => {
@@ -58,7 +55,6 @@ const Booking = () => {
     const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Kiểm tra các lỗi form
     if (!formData.booking_date) {
       newErrors.booking_date = 'Vui lòng chọn ngày đặt bàn';
     } else if (selectedDate && selectedDate < today) {
@@ -99,26 +95,27 @@ const Booking = () => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Map đúng fields theo interface BookingRequest
       const bookingData = {
-        name: formData.name,
+        customer_name: formData.name,
         email: formData.email,
         phone: formData.phone,
         guests: Number(formData.guests),
         booking_date: formData.booking_date,
-        time: formData.time,
-        notes: formData.notes,
-        withChildren: formData.withChildren,
-        birthday: formData.birthday,
-        window: formData.window,
-        childrenChair: formData.childrenChair
+        booking_time: formData.time,
+        note: formData.notes,
       };
 
       try {
+        console.log('Sending booking data:', bookingData);
         const response = await bookingService.createBooking(bookingData);
         console.log('Booking response:', response);
 
-        alert('Đặt bàn thành công!');
+        setToast({
+          show: true,
+          message: 'Đặt bàn thành công!',
+          type: 'success'
+        });
+
         setFormData({
           name: '',
           email: '',
@@ -127,14 +124,15 @@ const Booking = () => {
           booking_date: '',
           time: '',
           notes: '',
-          withChildren: false,
-          birthday: false,
-          window: false,
-          childrenChair: false,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Booking error:', error);
-        alert('Đặt bàn thất bại, vui lòng thử lại.');
+        const errorMessage = error.response?.data?.message || 'Đặt bàn thất bại, vui lòng thử lại.';
+        setToast({
+          show: true,
+          message: errorMessage,
+          type: 'error'
+        });
       }
     } else {
       const firstErrorField = document.querySelector('.error-message');
@@ -148,6 +146,14 @@ const Booking = () => {
 
   return (
     <div className="booking-page">
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(prev => ({ ...prev, show: false }))}
+        />
+      )}
+
       <div className="booking-header">
         <div className="container">
           <h1>Đặt Bàn dễ dàng tại nhà hàng Gogi</h1>
@@ -259,52 +265,6 @@ const Booking = () => {
                   onChange={handleChange}
                   rows={3}
                 />
-              </div>
-
-              <div className="checkboxes">
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="withChildren"
-                    name="withChildren"
-                    checked={formData.withChildren}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label htmlFor="withChildren">Có trẻ em</label>
-                </div>
-
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="birthday"
-                    name="birthday"
-                    checked={formData.birthday}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label htmlFor="birthday">Tiệc sinh nhật</label>
-                </div>
-
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="window"
-                    name="window"
-                    checked={formData.window}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label htmlFor="window">Bàn gần cửa sổ</label>
-                </div>
-
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="childrenChair"
-                    name="childrenChair"
-                    checked={formData.childrenChair}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label htmlFor="childrenChair">Cần ghế trẻ em</label>
-                </div>
               </div>
 
               <div className="form-policy">

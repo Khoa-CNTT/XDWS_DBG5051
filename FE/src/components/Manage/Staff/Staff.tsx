@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+    //  staffList,
     StaffList
 } from './StaffList'
 import FormStaff from './FormStaff'
@@ -23,15 +24,13 @@ const Staff = () => {
             try {
                 const res = await axios.get('http://localhost:8000/api/admin/list-user', authHeader());
                 if (Array.isArray(res.data.data)) {
-                    const staffOnly = res.data.data.filter((user: any) => user.role === 'staff');
-                    setStaffs(staffOnly);
-
+                    setStaffs(res.data.data);
                 } else {
                     console.error('Dữ liệu trả về không phải là một mảng:', res.data);
                     setStaffs([]); // Đặt giá trị mặc định là mảng rỗng
                 }
-            } catch (error: any) {
-                console.error('Lỗi khi lấy danh sách nhân viên:', error.response);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách nhân viên:', error);
                 setStaffs([]); // Đặt giá trị mặc định là mảng rỗng khi có lỗi
             }
         };
@@ -68,20 +67,16 @@ const Staff = () => {
     const handleDelete = (staffSelect: StaffList) => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${staffSelect.name}`)
         if (confirmDelete) {
-            axios.delete(`http://localhost:8000/api/admin/user/${staffSelect.id}`, authHeader())
+            axios.delete(`http://localhost:8000/api/admin/cate/${staffSelect.id}`)
             const updateStaff = staffs.filter((food) => food.id !== staffSelect.id)
             setStaffs(updateStaff)
-            alert(`Xóa nhân viên thành công: ${staffSelect.name}`);
-
         }
     }
 
-    const handleEdit = (staff: StaffList) => {
-        setInitStaffs(staff);
+    const handleEdit = (food: StaffList) => {
+        setInitStaffs(food);
         setShowForm(true);
-        // console.log(staff);
-        console.log('Hello');
-
+        console.log(food);
 
     };
 

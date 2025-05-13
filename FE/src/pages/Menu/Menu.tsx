@@ -308,7 +308,7 @@ const Menu = () => {
                 (selectedCategory === 'popular' ? 'Món phổ biến' :
                   (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
             </span>
-          </div >
+          </div>
 
           {/* Search Box */}
           < div className="search-container" >

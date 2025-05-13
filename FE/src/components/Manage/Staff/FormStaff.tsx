@@ -1,6 +1,7 @@
 import { StaffList } from "./StaffList";
 import React, { useState, useEffect } from "react";
-
+// import { Category } from '../Category/Category'
+// import './FormStaff.scss'
 interface AddFormProps {
     onsave: (staff: StaffList) => void;
     staff: StaffList | null;
@@ -11,7 +12,7 @@ const FormStaff = ({ onsave, staff, closeForm }: AddFormProps) => {
 
     const [name, setName] = useState(staff?.name || "");
     const [mail, setMail] = useState(staff?.email || "");
-    const [pass, setPass] = useState("");
+    const [pass, setPass] = useState(staff?.password || "");
     const [phone, setPhone] = useState(staff?.phone || "");
 
 
@@ -23,7 +24,7 @@ const FormStaff = ({ onsave, staff, closeForm }: AddFormProps) => {
             name,
             phone: phone,
             email: mail,
-            password: pass || '',
+            password: pass,
             role: 'staff',
         });
     };

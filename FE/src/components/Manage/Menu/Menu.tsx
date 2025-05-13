@@ -32,7 +32,7 @@ const MenuManage = () => {
         };
 
         fetchCategories();
-    }, [refresh]);
+    }, []);
 
     useEffect(() => {
 
@@ -45,6 +45,7 @@ const MenuManage = () => {
                 console.log("Lỗi khi gọi API:", error);
             }
         };
+
         fetchMenus();
 
     }, [refresh]);
@@ -69,15 +70,15 @@ const MenuManage = () => {
             } else {
                 // Gọi API thêm món ăn
                 const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, form, authHeader());
-                console.log('Thêm món ăn thành công:', res.data.data);
+                console.log('Thêm món ăn thành công:', res.data);
             }
 
             // Đóng form và reset trạng thái
             setShowAddForm(false);
             setInitMenus(null);
             setRefresh(prev => !prev);
-        } catch (error: any) {
-            console.error('Lỗi khi lưu món ăn:', error.response);
+        } catch (error) {
+            console.error('Lỗi khi lưu món ăn:', error);
         }
     };
 
