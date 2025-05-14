@@ -40,7 +40,7 @@ class TableController extends Controller
         $qrDir = public_path('upload/qr_code');
 
         // Tạo mã QR
-        $qrCodeData = "Table: " . $tableNumber;
+        $qrCodeData = "http://192.168.1.191:5173/list-menu?table=" . $tableNumber;
         $qrCode = QrCode::format('png')->size(300)->generate($qrCodeData);  // Generate PNG
 
         $fileName = "table_{$tableNumber}.png";
@@ -94,6 +94,10 @@ class TableController extends Controller
             return response()->json([
                 'message' => 'Trạng thái không hợp lệ'
             ], 400);
+        }
+        // Cập nhật cả table_number nếu có
+        if ($request->has('table_number')) {
+            $table->table_number = strtoupper($request->table_number);
         }
 
         // Cập nhật status

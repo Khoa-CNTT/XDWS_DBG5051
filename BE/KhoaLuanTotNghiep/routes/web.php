@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\MenuController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,13 +15,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/imagick', function () {
-    if (!extension_loaded('imagick')) {
-        echo 'no';
-    } else {
-        phpinfo();
-        echo 'yes';
-        
-    }
-    return view('welcome');
+Route::prefix('cart')->group(function () {
+    Route::post('/add-to-cart', [MenuController::class, 'addToCart']);
+    Route::get('/', [CartController::class, 'index']);
+    Route::post('/up', [CartController::class, 'upQtyCart']);
+    Route::post('/down', [CartController::class, 'downQtyCart']);
+    Route::post('/delete', [CartController::class, 'deleteQtyCart']);
 });
