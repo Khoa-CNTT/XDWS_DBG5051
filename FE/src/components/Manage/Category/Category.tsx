@@ -61,7 +61,7 @@ const Category = () => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${cate.name}`)
         if (confirmDelete) {
             try {
-                const res = await api.delete(`/admin/cate/${cate.id}`);
+                const res = await api.delete(`/admin/delete-cate/${cate.id}`);
                 console.log('Xóa danh mục thành công:', res.data);
                 setCategory((prev) => prev.filter((item) => item.id !== cate.id));
             } catch (error: any) {

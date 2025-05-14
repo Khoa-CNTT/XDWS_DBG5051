@@ -4,10 +4,25 @@ import { FoodItem } from './foodItem'
 import FoodForm from './FoodForm'
 import axios from 'axios'
 
-
 import { getCurrentApi, authHeader, getApiAdmin } from '../../../Api/Login'
-
 import { CategoryType } from '../Category/Category'
+
+
+export const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0,   
+        maximumFractionDigits: 0
+    }).format(price);
+};
+
+export const getImageUrl = (image: string | null) => {
+    if (!image) return '/vite.svg';
+    if (image.startsWith('http')) return image;
+    return `http://localhost:8000/upload/menu/${image}`;
+};
+
 const MenuManage = () => {
     const headers = ['Ảnh', 'Tên', 'Giá', 'Trạng Thái', 'Danh Mục', 'Hành Động']
 
@@ -17,6 +32,7 @@ const MenuManage = () => {
     const [categories, setCategories] = useState<CategoryType[]>([])
     const [refresh, setRefresh] = useState(false)
 
+    
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -49,30 +65,28 @@ const MenuManage = () => {
 
     }, [refresh]);
 
-    const getImageUrl = (image: string | null) => {
-        if (!image) return '/vite.svg';
-        if (image.startsWith('http')) return image;
-        return `http://localhost:8000/upload/menu/${image}`;
-    };
-
-
+    
 
     const handleSaveMenu = async (form: FormData) => {
         try {
-            if (initMenus) {
+            // Kiểm tra tên món ăn chỉ chứa chữ
+            const name = form.get('name') as string;
+            if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(name)) {
+                alert('Tên món ăn chỉ được chứa chữ cái và khoảng trắng');
+                return;
+            }
 
+            if (initMenus) {
                 form.append('_method', 'PUT');
                 const res = await axios.post(`http://localhost:8000/api/admin/update-menu/${initMenus.id}`, form,
                     authHeader()
                 );
                 console.log('Cập nhật món ăn thành công:', res.data);
             } else {
-                // Gọi API thêm món ăn
                 const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, form, authHeader());
                 console.log('Thêm món ăn thành công:', res.data.data);
             }
 
-            // Đóng form và reset trạng thái
             setShowAddForm(false);
             setInitMenus(null);
             setRefresh(prev => !prev);
@@ -142,7 +156,7 @@ const MenuManage = () => {
                                         </td>
 
                                         <td className="food-name">{food?.name}</td>
-                                        <td className="food-price">{food?.price?.toLocaleString()} VNĐ</td>
+                                        <td className="food-price">{formatPrice(food?.price)}</td>
                                         <td className="food-status">
                                             {'Còn'}
                                         </td>

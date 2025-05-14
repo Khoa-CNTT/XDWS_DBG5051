@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../Api/AxiosIntance';
 import './Menu.scss';
 import LoadingSpinner from '../../components/Loading/LoadingSpinner.tsx';
-
+import { getImageUrl } from '../../components/Manage/Menu/Menu.tsx';
 // API Constants
 const API_ENDPOINTS = {
   MENU: '/list-menu',
@@ -434,7 +434,7 @@ const Menu = () => {
                     <div key={item.id} className="menu-item">
                       {item.image && (
                         <div className="item-image">
-                          <img src={item.image} alt={item.name} />
+                          <img src={getImageUrl(item.image)} alt={item.name} />
                         </div>
                       )}
                       <div className="item-details">
