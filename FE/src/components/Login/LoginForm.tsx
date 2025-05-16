@@ -16,29 +16,36 @@ const loginForm = () => {
         try {
             const result = await login(name, password);
             const token = result.token;
-
+            const role = result.role;
+            const Name = result.name;
             // Lưu token vào localStorage và set header
             localStorage.setItem('token', token);
+            localStorage.setItem('role', role);
+            localStorage.setItem('name', Name)
+
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             console.log('TOKEN:', token);
+            console.log('Role', role);
+            console.log('name', name);
+
             setError('');
 
             // Lấy thông tin người dùng và kiểm tra role
             try {
                 const userInfo = await getUserInfo();
                 console.log('Thông tin người dùng:', userInfo);
-                
+
                 // Lưu role vào localStorage
                 localStorage.setItem('role', userInfo.role);
-                
+
                 // Kiểm tra role và điều hướng
-                if (userInfo.role === 'admin') {
-                    navigate('/admin');
-                } else if (userInfo.role === 'staff') {
-                    navigate('/staff');
-                } else {
-                    setError('Không có quyền truy cập');
-                }
+                // if (userInfo.role === 'admin') {
+                navigate('/admin');
+                // } else if (userInfo.role === 'staff') {
+                // navigate('/staff');
+                // } else {
+                //     setError('Không có quyền truy cập');
+                // }
             } catch (error) {
                 console.error('Lỗi khi lấy thông tin người dùng:', error);
                 setError('Không thể lấy thông tin người dùng');

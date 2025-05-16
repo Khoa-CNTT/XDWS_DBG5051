@@ -11,11 +11,15 @@ import Category from '../../components/Manage/Category/Category.tsx';
 import OrderManagement from '../../components/Manage/Order/Order.tsx';
 import ReportDashboard from '../../components/Manage/Report/Report.tsx';
 import { useNavigate } from 'react-router-dom';
+import FeedbackForm from '../../components/FeedBack/FeedBackForm.tsx';
+
+
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('qrcode');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
-
+  const role = localStorage.getItem('role');
+  const name = localStorage.getItem('name')
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
@@ -25,6 +29,8 @@ const Admin = () => {
     localStorage.removeItem('role');
     navigate('/login');
   };
+
+
 
   return (
     <div className="admin-dashboard">
@@ -38,71 +44,128 @@ const Admin = () => {
         </div>
 
         <div className="sidebar-menu">
-          <div
-            className={`sidebar-menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            <FaHome size={20} />
-            {!isSidebarCollapsed && <span>Tổng quan</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'qrcode' ? 'active' : ''}`}
-            onClick={() => setActiveTab('qrcode')}
-          >
-            <FaQrcode size={20} />
-            {!isSidebarCollapsed && <span>Mã QR đặt món</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            <FaClipboardList size={20} />
-            {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'cate' ? 'active' : ''}`}
-            onClick={() => setActiveTab('cate')}
-          >
-            <FaList size={20} />
-            {!isSidebarCollapsed && <span>Quản lý Danh mục</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'menu' ? 'active' : ''}`}
-            onClick={() => setActiveTab('menu')}
-          >
-            <FaTableList size={20} />
-            {!isSidebarCollapsed && <span>Quản lý thực đơn</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'stats' ? 'active' : ''}`}
-            onClick={() => setActiveTab('stats')}
-          >
-            <FaChartBar size={20} />
-            {!isSidebarCollapsed && <span>Thống kê</span>}
-          </div>
+          {
+            role === 'admin' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                <FaHome size={20} />
+                {!isSidebarCollapsed && <span>Tổng quan</span>}
+              </div>
+              :
+              ''
+          }
 
-          <div
-            className={`sidebar-menu-item ${activeTab === 'table' ? 'active' : ''}`}
-            onClick={() => setActiveTab('table')}
-          >
-            <FaTableCells size={20} />
-            {!isSidebarCollapsed && <span>Quản Lý Bàn</span>}
-          </div>
+          {
+            role === 'admin' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'qrcode' ? 'active' : ''}`}
+                onClick={() => setActiveTab('qrcode')}
+              >
+                <FaQrcode size={20} />
+                {!isSidebarCollapsed && <span>Mã QR đặt món</span>}
+              </div>
 
-          <div
-            className={`sidebar-menu-item ${activeTab === 'staff' ? 'active' : ''}`}
-            onClick={() => setActiveTab('staff')}
-          >
-            <FaPeopleGroup size={20} />
-            {!isSidebarCollapsed && <span>Quản Lý Nhân Viên</span>}
-          </div>
-          <div
-            className={`sidebar-menu-item ${activeTab === 'payment' ? 'active' : ''}`}
-            onClick={() => setActiveTab('payment')}
-          >
-            <FaMoneyBillWave size={20} />
-            {!isSidebarCollapsed && <span>Quản lý thanh toán</span>}
-          </div>
+              :
+              ''
+          }
+          {
+            role === 'admin' || role === 'staff' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+                onClick={() => setActiveTab('orders')}
+              >
+                <FaClipboardList size={20} />
+                {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
+              </div>
+
+              :
+              ''
+          }
+
+          {
+            role === 'admin' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'cate' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cate')}
+              >
+                <FaList size={20} />
+                {!isSidebarCollapsed && <span>Quản lý Danh mục</span>}
+              </div>
+
+              :
+              ''
+          }
+
+          {
+            role === 'admin' ?
+
+              <div
+                className={`sidebar-menu-item ${activeTab === 'menu' ? 'active' : ''}`}
+                onClick={() => setActiveTab('menu')}
+              >
+                <FaTableList size={20} />
+                {!isSidebarCollapsed && <span>Quản lý thực đơn</span>}
+              </div>
+              :
+              ''
+          }
+          {
+            role === 'admin' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'stats' ? 'active' : ''}`}
+                onClick={() => setActiveTab('stats')}
+              >
+                <FaChartBar size={20} />
+                {!isSidebarCollapsed && <span>Thống kê</span>}
+              </div>
+
+              :
+              ''
+          }
+
+          {
+            role === 'admin' ?
+
+              <div
+                className={`sidebar-menu-item ${activeTab === 'table' ? 'active' : ''}`}
+                onClick={() => setActiveTab('table')}
+              >
+                <FaTableCells size={20} />
+                {!isSidebarCollapsed && <span>Quản Lý Bàn</span>}
+              </div>
+              :
+              ''
+          }
+
+          {
+            role === 'admin' ?
+
+              <div
+                className={`sidebar-menu-item ${activeTab === 'staff' ? 'active' : ''}`}
+                onClick={() => setActiveTab('staff')}
+              >
+                <FaPeopleGroup size={20} />
+                {!isSidebarCollapsed && <span>Quản Lý Nhân Viên</span>}
+              </div>
+              :
+              ''
+          }
+
+          {
+            role === 'admin' || role === 'staff' ?
+              <div
+                className={`sidebar-menu-item ${activeTab === 'payment' ? 'active' : ''}`}
+                onClick={() => setActiveTab('payment')}
+              >
+                <FaMoneyBillWave size={20} />
+                {!isSidebarCollapsed && <span>Quản lý thanh toán</span>}
+              </div>
+
+              :
+              ''
+          }
         </div>
 
         <div className="sidebar-footer">
@@ -132,11 +195,12 @@ const Admin = () => {
 
           </h1>
           <div className="admin-info">
-            <span className="admin-name">Admin</span>
+            <span className="admin-name">{role}:{name}</span>
           </div>
         </div>
 
         <div className="content-body">
+
           {activeTab === 'qrcode' && <QrCodeGenerator />}
           {activeTab === 'dashboard' && <div className="placeholder-content">Tính năng đang phát triển</div>}
           {activeTab === 'orders' && <div><OrderManagement /></div>}
@@ -146,6 +210,7 @@ const Admin = () => {
           {activeTab === 'table' && <div><Table /></div>}
           {activeTab === 'staff' && <div><Staff /></div>}
           {activeTab === 'payment' && <div><PaymentManagement /></div>}
+
         </div>
       </div>
     </div>

@@ -66,6 +66,7 @@ const Category = () => {
                 setCategory((prev) => prev.filter((item) => item.id !== cate.id));
             } catch (error: any) {
                 console.error('Lỗi khi xóa danh mục:', error.response);
+                alert('Đang có món sử dụng danh mục này')
             }
         }
     }

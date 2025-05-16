@@ -21,6 +21,16 @@ interface Order {
   createdAt: Date;
 }
 
+export const createPayment = async (amount: number) => {
+  const res = await fetch('http://localhost:8000/api/staff/vnpay_payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  });
+  const data = await res.json();
+  return data.url;
+};
+
 const PaymentManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -102,7 +112,7 @@ const PaymentManagement = () => {
         createdAt: new Date(2025, 3, 19, 19, 15)
       }
     ];
-    
+
     setOrders(mockOrders);
   }, []);
 
@@ -134,14 +144,14 @@ const PaymentManagement = () => {
 
   const handleCashPayment = () => {
     if (!selectedOrder) return;
-    
+
     if (amountReceived < selectedOrder.total) {
       setError('Số tiền khách đưa không đủ!');
       return;
     }
-    
+
     setError('');
-    
+
     const updatedOrders = orders.map(order => {
       if (order.id === selectedOrder.id) {
         return {
@@ -155,15 +165,16 @@ const PaymentManagement = () => {
       }
       return order;
     });
-    
+
     setOrders(updatedOrders);
     setPaymentCompleted(true);
-    
+
   };
+
 
   const handleBankPayment = () => {
     if (!selectedOrder) return;
-    
+
     setShowQRCode(true);
   };
 
@@ -181,7 +192,7 @@ const PaymentManagement = () => {
       }
       return order;
     });
-    
+
     setOrders(updatedOrders);
     setPaymentCompleted(true);
     setShowQRCode(false);
@@ -198,22 +209,22 @@ const PaymentManagement = () => {
   };
 
   const formatDateTime = (date: Date) => {
-    return new Intl.DateTimeFormat('vi-VN', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     }).format(date);
   };
 
-  const filteredOrders = orders.filter(order => 
-    viewMode === 'pending' 
-      ? (order.paymentStatus === 'unpaid' && 
-         (order.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredOrders = orders.filter(order =>
+    viewMode === 'pending'
+      ? (order.paymentStatus === 'unpaid' &&
+        (order.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.id.toString().includes(searchTerm)))
-      : (order.paymentStatus === 'paid' && 
-         (order.tableNumber.toLowerCase().includes(historySearchTerm.toLowerCase()) || 
+      : (order.paymentStatus === 'paid' &&
+        (order.tableNumber.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
           order.id.toString().includes(historySearchTerm)))
   );
 
@@ -222,13 +233,13 @@ const PaymentManagement = () => {
       <div className="payment-management-header">
         <h2>Quản lý thanh toán</h2>
         <div className="view-toggle">
-          <button 
+          <button
             className={`toggle-btn ${viewMode === 'pending' ? 'active' : ''}`}
             onClick={() => setViewMode('pending')}
           >
             Chờ thanh toán
           </button>
-          <button 
+          <button
             className={`toggle-btn ${viewMode === 'history' ? 'active' : ''}`}
             onClick={() => {
               setViewMode('history');
@@ -239,12 +250,12 @@ const PaymentManagement = () => {
           </button>
         </div>
         <div className="search-bar">
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder={viewMode === 'pending' ? "Tìm kiếm đơn chờ thanh toán..." : "Tìm kiếm lịch sử thanh toán..."}
             value={viewMode === 'pending' ? searchTerm : historySearchTerm}
-            onChange={(e) => viewMode === 'pending' 
-              ? setSearchTerm(e.target.value) 
+            onChange={(e) => viewMode === 'pending'
+              ? setSearchTerm(e.target.value)
               : setHistorySearchTerm(e.target.value)
             }
           />
@@ -256,8 +267,8 @@ const PaymentManagement = () => {
           <h3>{viewMode === 'pending' ? 'Đơn hàng chờ thanh toán' : 'Lịch sử thanh toán'}</h3>
           {filteredOrders.length === 0 ? (
             <div className="no-orders">
-              {viewMode === 'pending' 
-                ? 'Không có đơn hàng nào chờ thanh toán' 
+              {viewMode === 'pending'
+                ? 'Không có đơn hàng nào chờ thanh toán'
                 : 'Không có lịch sử thanh toán nào'
               }
             </div>
@@ -285,7 +296,7 @@ const PaymentManagement = () => {
                         <td>{order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</td>
                       )}
                       <td>
-                        <button 
+                        <button
                           className="view-btn"
                           onClick={() => handleOrderSelect(order)}
                         >
@@ -318,7 +329,7 @@ const PaymentManagement = () => {
                     </>
                   )}
                   <p>Thời gian: {formatDateTime(selectedOrder.createdAt)}</p>
-                  
+
                   <div className="order-items">
                     <h4>Danh sách món</h4>
                     <table>
@@ -348,7 +359,7 @@ const PaymentManagement = () => {
                       </tfoot>
                     </table>
                   </div>
-                  
+
                   {viewMode !== 'history' && (
                     <button className="print-btn" onClick={handlePrintReceipt}>
                       <FaPrint /> In hóa đơn
@@ -363,7 +374,7 @@ const PaymentManagement = () => {
                   <h3>Thanh toán chuyển khoản</h3>
                   <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.tableNumber}</p>
                   <p>Tổng tiền: {formatCurrency(selectedOrder.total)}</p>
-                  
+
                   <div className="qr-code">
                     <div className="qr-placeholder">
                       {/* In a real app, this would be an actual QR code */}
@@ -380,7 +391,7 @@ const PaymentManagement = () => {
                       Nội dung: Thanh toan #{selectedOrder.id}
                     </p>
                   </div>
-                  
+
                   <div className="action-buttons">
                     <button className="confirm-btn" onClick={confirmBankPayment}>
                       <FaCheck /> Xác nhận đã nhận thanh toán
@@ -398,7 +409,7 @@ const PaymentManagement = () => {
                     <p><strong>Bàn số:</strong> {selectedOrder.tableNumber}</p>
                     <p><strong>Thời gian:</strong> {formatDateTime(selectedOrder.createdAt)}</p>
                   </div>
-                  
+
                   <div className="order-items">
                     <h4>Danh sách món</h4>
                     <table>
@@ -428,30 +439,30 @@ const PaymentManagement = () => {
                       </tfoot>
                     </table>
                   </div>
-                  
+
                   <div className="payment-methods">
                     <h4>Chọn phương thức thanh toán</h4>
                     <div className="method-selector">
-                      <button 
+                      <button
                         className={`method-btn ${paymentMethod === 'cash' ? 'active' : ''}`}
                         onClick={() => setPaymentMethod('cash')}
                       >
                         <FaMoneyBillWave /> Tiền mặt
                       </button>
-                      <button 
+                      <button
                         className={`method-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
                         onClick={() => setPaymentMethod('bank')}
                       >
                         <FaUniversity /> Chuyển khoản
                       </button>
                     </div>
-                    
+
                     {paymentMethod === 'cash' && (
                       <div className="cash-payment">
                         <div className="form-group">
                           <label>Số tiền khách đưa:</label>
-                          <input 
-                            type="number" 
+                          <input
+                            type="number"
                             value={amountReceived || ''}
                             onChange={(e) => handleAmountReceivedChange(Number(e.target.value))}
                             min={0}
@@ -459,15 +470,15 @@ const PaymentManagement = () => {
                         </div>
                         <div className="form-group">
                           <label>Tiền thừa:</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={formatCurrency(amountReturned)}
                             readOnly
                             className={amountReturned < 0 ? 'error' : ''}
                           />
                         </div>
                         {error && <p className="error-message">{error}</p>}
-                        <button 
+                        <button
                           className="confirm-btn"
                           onClick={handleCashPayment}
                           disabled={amountReceived < selectedOrder.total}
@@ -476,7 +487,7 @@ const PaymentManagement = () => {
                         </button>
                       </div>
                     )}
-                    
+
                     {paymentMethod === 'bank' && (
                       <div className="bank-payment-button">
                         <button className="confirm-btn" onClick={handleBankPayment}>
@@ -485,7 +496,7 @@ const PaymentManagement = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <button className="cancel-btn" onClick={resetPaymentState}>
                     <FaTimes /> Hủy
                   </button>
