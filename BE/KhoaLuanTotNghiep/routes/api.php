@@ -8,6 +8,7 @@ use App\Http\Controllers\API\ChatbotController;
 use App\Http\Controllers\API\CheckoutController;
 use App\Http\Controllers\API\MenuController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\RateController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\TableController;
 use Illuminate\Http\Request;
@@ -38,7 +39,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 🔹 Chỉ admin mới có quyền vào route này
     Route::middleware('role:admin')->group(function () {
-        Route::get('/admin/dashboard', [ReportController::class, 'getChartData']);
         // Tai Khoan
         Route::get('/admin/list-user', [AuthController::class, 'index']);
         //add
@@ -77,6 +77,9 @@ Route::middleware('auth:sanctum')->group(function () {
         //câp nhật đơn đặt bàn
         Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);
 
+        //Thống kê        
+        Route::get('/admin/dashboard', [ReportController::class, 'getChartData']);
+
     });
 
     // 🔹 Chỉ staff mới có quyền vào route này
@@ -86,8 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
         // Các API khác cần đăng nhập mới được dùng
         Route::post('/logout', [AuthController::class, 'logout']);
-        // Đơn hàng chi tiết
-        Route::get('/staff/order-item/{id}', [OrderController::class, 'show']);
+
         //Thanh toán
         Route::post('/staff/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
         //phản hồi VNpay
@@ -109,6 +111,8 @@ Route::get('/list-menu', [MenuController::class, 'index']);
 // Đơn hàng
 Route::get('/order', [OrderController::class, 'index']);
 
+// Đơn hàng chi tiết
+Route::get('/order-item/{id}', [OrderController::class, 'show']);
 //đặt món
 Route::post('/orders/place', [OrderController::class, 'placeOrder']);
 
@@ -118,18 +122,11 @@ Route::get('/popular-dishes', [MenuController::class, 'getPopularMenus']);
 //Dat ban
 Route::post('/booking', [BookingController::class, 'store']);
 
-// Lấy danh sách giỏ hàng
-Route::get('/cart', [CartController::class, 'index']);
-
-// Tăng số lượng sản phẩm trong giỏ
-Route::post('/cart/up', [CartController::class, 'upQtyCart']);
-
-// Giảm số lượng sản phẩm trong giỏ
-Route::post('/cart/down', [CartController::class, 'downQtyCart']);
-
-// Xóa sản phẩm khỏi giỏ
-Route::post('/cart/delete', [CartController::class, 'deleteQtyCart']);
 
 //Chatbox
 Route::post('/chatbox', [ChatbotController::class, 'ask']);
+
+//Đánh giá
+Route::get('/rating/form/{order_id}', [RateController::class, 'getFoodByOrder']);
+Route::post('/rating/submit', [RateController::class, 'submitRating']);
 

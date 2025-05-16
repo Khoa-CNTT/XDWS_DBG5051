@@ -97,7 +97,7 @@ class MenuController extends Controller
             $file->move('upload/menu', $name);
         }
 
-          $menu->update($data);
+        $menu->update($data);
 
         if (!$menu) {
             return response()->json([
@@ -135,13 +135,21 @@ class MenuController extends Controller
         $MenuID = $request->input('menu_id');
         $cart = session()->get('cart', []);
 
+        $menu = Menu::find($MenuID);
+        if (!$menu) {
+            return response()->json(['message' => 'Không tìm thấy món ăn!'], 404);
+        }
+
         if (isset($cart[$MenuID])) {
-            // Nếu có thì tăng số lượng
+            // Nếu đã có trong giỏ thì tăng số lượng
             $cart[$MenuID]['qty']++;
         } else {
-            // Nếu không có thì thêm sản phẩm vào giỏ hàng với số lượng là 1
+            // Thêm món mới vào giỏ hàng
             $cart[$MenuID] = [
-                'qty' => 1
+                'qty' => 1,
+                'price' => $menu->price,
+                'name' => $menu->name, 
+                'image' => $menu->image 
             ];
         }
 
@@ -156,5 +164,7 @@ class MenuController extends Controller
 
         return response()->json($recommendedDishes);
     }
+
+
 
 }

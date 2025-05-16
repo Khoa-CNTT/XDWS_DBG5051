@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $table = 'orders';
-    protected $fillable = ['table_id', 'total_price', 'status'];
+    protected $fillable = ['number_table', 'total_price', 'status'];
 
     public function items()
     {
@@ -18,6 +18,6 @@ class Order extends Model
     }
     public function table()
     {
-        return $this->belongsTo(Table::class, 'table_id');
+        return $this->belongsTo(Table::class, 'number_table');
     }
 }

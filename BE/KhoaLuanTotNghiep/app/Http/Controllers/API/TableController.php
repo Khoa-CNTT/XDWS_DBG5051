@@ -79,7 +79,7 @@ class TableController extends Controller
             ], 401);
         }
     }
-    public function update(TableRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $table = Table::find($id);
         if (!$table) {
@@ -95,10 +95,7 @@ class TableController extends Controller
                 'message' => 'Trạng thái không hợp lệ'
             ], 400);
         }
-        // Cập nhật cả table_number nếu có
-        if ($request->has('table_number')) {
-            $table->table_number = strtoupper($request->table_number);
-        }
+        
 
         // Cập nhật status
         $table->status = $request->status;

@@ -37,20 +37,24 @@ class OrderController extends Controller
             return response()->json(['message' => 'Giỏ hàng trống!'], 400);
         }
 
-        $totalPrice = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart));
+        $totalPrice = 0;
+
+        // Tính tổng tiền đúng cách
+        foreach ($cart as $menuId => $item) {
+            $totalPrice += $item['price'] * $item['qty'];
+        }
 
         $order = Order::create([
-            'number_table' => $request->number_table,
+            'table_number' => $request->table_number,
             'total_price' => $totalPrice,
             'status' => 'pending',
         ]);
 
-        foreach ($cart as $item) {
+        foreach ($cart as $menuId => $item) {
             OrderItem::create([
                 'order_id' => $order->id,
-                'menu_id' => $item['menu_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
+                'menu_id' => $menuId, // vì key là menu_id
+                'quantity' => $item['qty'],
             ]);
         }
 
