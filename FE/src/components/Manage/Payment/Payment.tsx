@@ -1,30 +1,21 @@
 import { useState, useEffect } from 'react';
 import { FaMoneyBillWave, FaUniversity, FaPrint, FaCheck, FaTimes, FaHistory } from 'react-icons/fa';
+import { paymentService } from '../../../services/paymentService';
+import { orderService, Order } from '../../../services/orderService';
+import LoadingSpinner from '../../Loading/LoadingSpinner';
 
-interface OrderItem {
-  id: number;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-interface Order {
-  id: number;
-  tableNumber: string;
-  items: OrderItem[];
-  total: number;
-  status: 'pending' | 'completed' | 'cancelled';
-  paymentStatus: 'unpaid' | 'paid';
-  paymentMethod?: 'cash' | 'bank';
-  amountReceived?: number;
-  amountReturned?: number;
-  createdAt: Date;
+// Mở rộng interface Order để thêm các thuộc tính cần thiết cho thanh toán
+interface OrderWithPayment extends Order {
+  payment_status?: 'unpaid' | 'paid';
+  payment_method?: 'cash' | 'VNPay';
+  amount_received?: number;
+  amount_returned?: number;
 }
 
 const PaymentManagement = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank'>('cash');
+  const [orders, setOrders] = useState<OrderWithPayment[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithPayment | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'VNPay'>('cash');
   const [amountReceived, setAmountReceived] = useState<number>(0);
   const [amountReturned, setAmountReturned] = useState<number>(0);
   const [paymentCompleted, setPaymentCompleted] = useState<boolean>(false);
@@ -33,77 +24,38 @@ const PaymentManagement = () => {
   const [error, setError] = useState<string>('');
   const [viewMode, setViewMode] = useState<'pending' | 'history'>('pending');
   const [historySearchTerm, setHistorySearchTerm] = useState<string>('');
+  const [vnpayUrl, setVnpayUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const mockOrders: Order[] = [
-      {
-        id: 1,
-        tableNumber: 'B01',
-        items: [
-          { id: 1, name: 'Phở bò', quantity: 2, price: 65000 },
-          { id: 2, name: 'Nước chanh', quantity: 2, price: 25000 }
-        ],
-        total: 180000,
-        status: 'pending',
-        paymentStatus: 'unpaid',
-        createdAt: new Date(2025, 3, 20, 12, 30)
-      },
-      {
-        id: 2,
-        tableNumber: 'B05',
-        items: [
-          { id: 3, name: 'Cơm tấm sườn', quantity: 1, price: 55000 },
-          { id: 4, name: 'Canh chua', quantity: 1, price: 35000 },
-          { id: 5, name: 'Coca Cola', quantity: 1, price: 20000 }
-        ],
-        total: 110000,
-        status: 'pending',
-        paymentStatus: 'unpaid',
-        createdAt: new Date(2025, 3, 20, 12, 45)
-      },
-      {
-        id: 3,
-        tableNumber: 'B08',
-        items: [
-          { id: 6, name: 'Bún chả', quantity: 3, price: 60000 },
-          { id: 7, name: 'Trà đá', quantity: 3, price: 5000 }
-        ],
-        total: 195000,
-        status: 'pending',
-        paymentStatus: 'unpaid',
-        createdAt: new Date(2025, 3, 20, 13, 15)
-      },
-      {
-        id: 4,
-        tableNumber: 'A03',
-        items: [
-          { id: 8, name: 'Gỏi cuốn', quantity: 2, price: 45000 },
-          { id: 9, name: 'Bia Sài Gòn', quantity: 2, price: 30000 }
-        ],
-        total: 150000,
-        status: 'completed',
-        paymentStatus: 'paid',
-        paymentMethod: 'cash',
-        amountReceived: 200000,
-        amountReturned: 50000,
-        createdAt: new Date(2025, 3, 19, 18, 30)
-      },
-      {
-        id: 5,
-        tableNumber: 'A07',
-        items: [
-          { id: 10, name: 'Lẩu thái', quantity: 1, price: 250000 },
-          { id: 11, name: 'Nước suối', quantity: 4, price: 15000 }
-        ],
-        total: 310000,
-        status: 'completed',
-        paymentStatus: 'paid',
-        paymentMethod: 'bank',
-        createdAt: new Date(2025, 3, 19, 19, 15)
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        // Gọi API để lấy danh sách đơn hàng
+        const response = await orderService.getAllOrders();
+        
+        // Chuyển đổi từ Order sang OrderWithPayment
+        const ordersWithPayment: OrderWithPayment[] = response.map(order => ({
+          ...order,
+          payment_status: order.status === 'delivered' ? 'paid' : 'unpaid',
+          payment_method: order.status === 'delivered' ? 'cash' : undefined
+        }));
+        
+        setOrders(ordersWithPayment);
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách đơn hàng:', error);
+        setOrders([]); // Đặt mảng rỗng để tránh lỗi type
+      } finally {
+        setIsLoading(false);
       }
-    ];
+    };
+
+    fetchOrders();
     
-    setOrders(mockOrders);
+    // Cập nhật danh sách đơn hàng mỗi 30 giây
+    const intervalId = setInterval(fetchOrders, 30000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const resetPaymentState = () => {
@@ -116,7 +68,7 @@ const PaymentManagement = () => {
     setError('');
   };
 
-  const handleOrderSelect = (order: Order) => {
+  const handleOrderSelect = (order: OrderWithPayment) => {
     setSelectedOrder(order);
     setAmountReceived(0);
     setAmountReturned(0);
@@ -128,64 +80,107 @@ const PaymentManagement = () => {
   const handleAmountReceivedChange = (amount: number) => {
     setAmountReceived(amount);
     if (selectedOrder) {
-      setAmountReturned(amount - selectedOrder.total);
+      setAmountReturned(amount - selectedOrder.total_price);
     }
   };
 
-  const handleCashPayment = () => {
+  const handleCashPayment = async () => {
     if (!selectedOrder) return;
     
-    if (amountReceived < selectedOrder.total) {
+    if (amountReceived < selectedOrder.total_price) {
       setError('Số tiền khách đưa không đủ!');
       return;
     }
     
     setError('');
+    setIsLoading(true);
     
-    const updatedOrders = orders.map(order => {
-      if (order.id === selectedOrder.id) {
-        return {
-          ...order,
-          paymentStatus: 'paid' as const,
-          paymentMethod: 'cash' as const,
-          amountReceived,
-          amountReturned: amountReceived - order.total,
-          status: 'completed' as const
-        };
-      }
-      return order;
-    });
-    
-    setOrders(updatedOrders);
-    setPaymentCompleted(true);
-    
+    try {
+      // Gọi API thanh toán
+      await paymentService.processInternalPayment({
+        order_id: selectedOrder.id,
+        amount: selectedOrder.total_price,
+        method: 'cash'
+      });
+      
+      // Cập nhật state
+      setOrders(prevOrders => 
+        prevOrders.map(order => {
+          if (order.id === selectedOrder.id) {
+            return {
+              ...order,
+              payment_status: 'paid' as const,
+              payment_method: 'cash' as const,
+              amount_received: amountReceived,
+              amount_returned: amountReceived - order.total_price,
+              status: 'delivered'
+            };
+          }
+          return order;
+        })
+      );
+      
+      setPaymentCompleted(true);
+    } catch (error) {
+      console.error('Lỗi thanh toán:', error);
+      setError('Thanh toán thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleBankPayment = () => {
+  const handleVNPayPayment = async () => {
     if (!selectedOrder) return;
     
-    setShowQRCode(true);
+    setIsLoading(true);
+    
+    try {
+      // Gọi API VNPay
+      const response = await paymentService.processVnPayPayment({
+        order_id: selectedOrder.id,
+        amount: selectedOrder.total_price
+      });
+      
+      setVnpayUrl(response.payment_url);
+      setShowQRCode(true);
+    } catch (error) {
+      console.error('Lỗi VNPay:', error);
+      setError('Không thể tạo thanh toán VNPay. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const confirmBankPayment = () => {
+  const confirmVNPayPayment = async () => {
     if (!selectedOrder) return;
-
-    const updatedOrders = orders.map(order => {
-      if (order.id === selectedOrder.id) {
-        return {
-          ...order,
-          paymentStatus: 'paid' as const,
-          paymentMethod: 'bank' as const,
-          status: 'completed' as const
-        };
-      }
-      return order;
-    });
     
-    setOrders(updatedOrders);
-    setPaymentCompleted(true);
-    setShowQRCode(false);
-
+    setIsLoading(true);
+    
+    try {
+      // Trong ứng dụng thực tế, việc này sẽ được xử lý bởi URL callback
+      // Ở đây chúng ta chỉ cập nhật trạng thái UI
+      setOrders(prevOrders => 
+        prevOrders.map(order => {
+          if (order.id === selectedOrder.id) {
+            return {
+              ...order,
+              payment_status: 'paid' as const,
+              payment_method: 'VNPay' as const,
+              status: 'delivered'
+            };
+          }
+          return order;
+        })
+      );
+      
+      setPaymentCompleted(true);
+      setShowQRCode(false);
+    } catch (error) {
+      console.error('Lỗi xác nhận thanh toán:', error);
+      setError('Xác nhận thanh toán thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePrintReceipt = () => {
@@ -197,7 +192,8 @@ const PaymentManagement = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  const formatDateTime = (date: Date) => {
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
     return new Intl.DateTimeFormat('vi-VN', { 
       day: '2-digit', 
       month: '2-digit', 
@@ -209,11 +205,11 @@ const PaymentManagement = () => {
 
   const filteredOrders = orders.filter(order => 
     viewMode === 'pending' 
-      ? (order.paymentStatus === 'unpaid' && 
-         (order.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      ? (order.payment_status === 'unpaid' && 
+         (order.table.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
           order.id.toString().includes(searchTerm)))
-      : (order.paymentStatus === 'paid' && 
-         (order.tableNumber.toLowerCase().includes(historySearchTerm.toLowerCase()) || 
+      : (order.payment_status === 'paid' && 
+         (order.table.name.toLowerCase().includes(historySearchTerm.toLowerCase()) || 
           order.id.toString().includes(historySearchTerm)))
   );
 
@@ -254,7 +250,14 @@ const PaymentManagement = () => {
       <div className="payment-management-content">
         <div className="orders-list">
           <h3>{viewMode === 'pending' ? 'Đơn hàng chờ thanh toán' : 'Lịch sử thanh toán'}</h3>
-          {filteredOrders.length === 0 ? (
+          {isLoading ? (
+            <LoadingSpinner 
+              loadingText="Đang tải danh sách thanh toán..." 
+              showDots={true} 
+              showSkeleton={false}
+              className="embedded"
+            />
+          ) : filteredOrders.length === 0 ? (
             <div className="no-orders">
               {viewMode === 'pending' 
                 ? 'Không có đơn hàng nào chờ thanh toán' 
@@ -278,11 +281,13 @@ const PaymentManagement = () => {
                   {filteredOrders.map(order => (
                     <tr key={order.id} className={selectedOrder?.id === order.id ? 'selected' : ''}>
                       <td>#{order.id}</td>
-                      <td>{order.tableNumber}</td>
-                      <td>{formatCurrency(order.total)}</td>
-                      <td>{formatDateTime(order.createdAt)}</td>
+                      <td>{order.table.name}</td>
+                      <td>{formatCurrency(order.total_price)}</td>
+                      <td>{formatDateTime(order.created_at)}</td>
                       {viewMode === 'history' && (
-                        <td>{order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</td>
+                        <td>
+                          {order.payment_method === 'cash' ? 'Tiền mặt' : 'VNPay'}
+                        </td>
                       )}
                       <td>
                         <button 
@@ -303,21 +308,21 @@ const PaymentManagement = () => {
         <div className="payment-details">
           {selectedOrder ? (
             <>
-              {paymentCompleted || (viewMode === 'history' && selectedOrder.paymentStatus === 'paid') ? (
+              {paymentCompleted || (viewMode === 'history' && selectedOrder.payment_status === 'paid') ? (
                 <div className="payment-success">
                   <div className="success-icon">
                     <FaCheck size={40} />
                   </div>
                   <h3>{viewMode === 'history' ? 'Chi tiết thanh toán' : 'Thanh toán thành công!'}</h3>
-                  <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.tableNumber}</p>
-                  <p>Phương thức: {selectedOrder.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</p>
-                  {selectedOrder.paymentMethod === 'cash' && (
+                  <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.table.name}</p>
+                  <p>Phương thức: {selectedOrder.payment_method === 'cash' ? 'Tiền mặt' : 'VNPay'}</p>
+                  {selectedOrder.payment_method === 'cash' && (
                     <>
-                      <p>Số tiền nhận: {formatCurrency(selectedOrder.amountReceived || amountReceived)}</p>
-                      <p>Tiền thừa: {formatCurrency(selectedOrder.amountReturned || amountReturned)}</p>
+                      <p>Số tiền nhận: {formatCurrency(selectedOrder.amount_received || amountReceived)}</p>
+                      <p>Tiền thừa: {formatCurrency(selectedOrder.amount_returned || amountReturned)}</p>
                     </>
                   )}
-                  <p>Thời gian: {formatDateTime(selectedOrder.createdAt)}</p>
+                  <p>Thời gian: {formatDateTime(selectedOrder.created_at)}</p>
                   
                   <div className="order-items">
                     <h4>Danh sách món</h4>
@@ -333,7 +338,7 @@ const PaymentManagement = () => {
                       <tbody>
                         {selectedOrder.items.map(item => (
                           <tr key={item.id}>
-                            <td>{item.name}</td>
+                            <td>{item.menu.name}</td>
                             <td>{item.quantity}</td>
                             <td>{formatCurrency(item.price)}</td>
                             <td>{formatCurrency(item.price * item.quantity)}</td>
@@ -343,7 +348,7 @@ const PaymentManagement = () => {
                       <tfoot>
                         <tr>
                           <td colSpan={3}><strong>Tổng cộng:</strong></td>
-                          <td><strong>{formatCurrency(selectedOrder.total)}</strong></td>
+                          <td><strong>{formatCurrency(selectedOrder.total_price)}</strong></td>
                         </tr>
                       </tfoot>
                     </table>
@@ -354,50 +359,33 @@ const PaymentManagement = () => {
                       <FaPrint /> In hóa đơn
                     </button>
                   )}
-                  <button className="back-btn" onClick={resetPaymentState}>
-                    Quay lại danh sách
-                  </button>
                 </div>
               ) : showQRCode ? (
-                <div className="bank-payment">
-                  <h3>Thanh toán chuyển khoản</h3>
-                  <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.tableNumber}</p>
-                  <p>Tổng tiền: {formatCurrency(selectedOrder.total)}</p>
+                <div className="vnpay-payment">
+                  <h3>Thanh toán VNPay</h3>
+                  <p>Quét mã QR để thanh toán:</p>
                   
                   <div className="qr-code">
-                    <div className="qr-placeholder">
-                      {/* In a real app, this would be an actual QR code */}
-                      <div style={{ width: '200px', height: '200px', background: '#f0f0f0', margin: '20px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        QR Code
-                      </div>
-                    </div>
-                    <p>Quét mã QR để chuyển khoản</p>
-                    <p className="bank-info">
-                      <strong>Thông tin chuyển khoản:</strong><br />
-                      Ngân hàng: VIETCOMBANK<br />
-                      Số tài khoản: 1234567890<br />
-                      Chủ tài khoản: SMART ORDER JSC<br />
-                      Nội dung: Thanh toan #{selectedOrder.id}
-                    </p>
+                    {/* Hiển thị QR code từ vnpayUrl */}
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(vnpayUrl)}`} alt="QR Code" />
                   </div>
                   
-                  <div className="action-buttons">
-                    <button className="confirm-btn" onClick={confirmBankPayment}>
-                      <FaCheck /> Xác nhận đã nhận thanh toán
+                  <p>Hoặc <a href={vnpayUrl} target="_blank" rel="noopener noreferrer">nhấn vào đây</a> để thanh toán</p>
+                  
+                  <div className="payment-actions">
+                    <button className="confirm-btn" onClick={confirmVNPayPayment}>
+                      <FaCheck /> Xác nhận đã thanh toán
                     </button>
                     <button className="cancel-btn" onClick={() => setShowQRCode(false)}>
-                      <FaTimes /> Quay lại
+                      <FaTimes /> Hủy
                     </button>
                   </div>
                 </div>
               ) : (
-                <>
-                  <h3>Chi tiết đơn hàng</h3>
-                  <div className="order-info">
-                    <p><strong>Mã đơn hàng:</strong> #{selectedOrder.id}</p>
-                    <p><strong>Bàn số:</strong> {selectedOrder.tableNumber}</p>
-                    <p><strong>Thời gian:</strong> {formatDateTime(selectedOrder.createdAt)}</p>
-                  </div>
+                <div className="payment-form">
+                  <h3>Thanh toán đơn hàng #{selectedOrder.id}</h3>
+                  <p>Bàn: {selectedOrder.table.name}</p>
+                  <p>Tổng tiền: <strong>{formatCurrency(selectedOrder.total_price)}</strong></p>
                   
                   <div className="order-items">
                     <h4>Danh sách món</h4>
@@ -413,7 +401,7 @@ const PaymentManagement = () => {
                       <tbody>
                         {selectedOrder.items.map(item => (
                           <tr key={item.id}>
-                            <td>{item.name}</td>
+                            <td>{item.menu.name}</td>
                             <td>{item.quantity}</td>
                             <td>{formatCurrency(item.price)}</td>
                             <td>{formatCurrency(item.price * item.quantity)}</td>
@@ -423,15 +411,15 @@ const PaymentManagement = () => {
                       <tfoot>
                         <tr>
                           <td colSpan={3}><strong>Tổng cộng:</strong></td>
-                          <td><strong>{formatCurrency(selectedOrder.total)}</strong></td>
+                          <td><strong>{formatCurrency(selectedOrder.total_price)}</strong></td>
                         </tr>
                       </tfoot>
                     </table>
                   </div>
                   
                   <div className="payment-methods">
-                    <h4>Chọn phương thức thanh toán</h4>
-                    <div className="method-selector">
+                    <h4>Phương thức thanh toán</h4>
+                    <div className="method-options">
                       <button 
                         className={`method-btn ${paymentMethod === 'cash' ? 'active' : ''}`}
                         onClick={() => setPaymentMethod('cash')}
@@ -439,66 +427,80 @@ const PaymentManagement = () => {
                         <FaMoneyBillWave /> Tiền mặt
                       </button>
                       <button 
-                        className={`method-btn ${paymentMethod === 'bank' ? 'active' : ''}`}
-                        onClick={() => setPaymentMethod('bank')}
+                        className={`method-btn ${paymentMethod === 'VNPay' ? 'active' : ''}`}
+                        onClick={() => setPaymentMethod('VNPay')}
                       >
-                        <FaUniversity /> Chuyển khoản
+                        <FaUniversity /> VNPay
                       </button>
                     </div>
-                    
-                    {paymentMethod === 'cash' && (
-                      <div className="cash-payment">
-                        <div className="form-group">
-                          <label>Số tiền khách đưa:</label>
-                          <input 
-                            type="number" 
-                            value={amountReceived || ''}
-                            onChange={(e) => handleAmountReceivedChange(Number(e.target.value))}
-                            min={0}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Tiền thừa:</label>
-                          <input 
-                            type="text" 
-                            value={formatCurrency(amountReturned)}
-                            readOnly
-                            className={amountReturned < 0 ? 'error' : ''}
-                          />
-                        </div>
-                        {error && <p className="error-message">{error}</p>}
-                        <button 
-                          className="confirm-btn"
-                          onClick={handleCashPayment}
-                          disabled={amountReceived < selectedOrder.total}
-                        >
-                          <FaCheck /> Xác nhận thanh toán
-                        </button>
-                      </div>
-                    )}
-                    
-                    {paymentMethod === 'bank' && (
-                      <div className="bank-payment-button">
-                        <button className="confirm-btn" onClick={handleBankPayment}>
-                          <FaCheck /> Tạo mã QR thanh toán
-                        </button>
-                      </div>
-                    )}
                   </div>
                   
-                  <button className="cancel-btn" onClick={resetPaymentState}>
-                    <FaTimes /> Hủy
-                  </button>
-                </>
+                  {paymentMethod === 'cash' && (
+                    <div className="cash-payment">
+                      <div className="form-group">
+                        <label>Số tiền nhận:</label>
+                        <input 
+                          type="number" 
+                          value={amountReceived || ''} 
+                          onChange={(e) => handleAmountReceivedChange(Number(e.target.value))}
+                          min={selectedOrder.total_price}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Tiền thừa:</label>
+                        <input 
+                          type="text" 
+                          value={formatCurrency(amountReturned)} 
+                          readOnly 
+                        />
+                      </div>
+                      
+                      {error && <div className="error-message">{error}</div>}
+                      
+                      <button 
+                        className="pay-btn"
+                        onClick={handleCashPayment}
+                        disabled={amountReceived < selectedOrder.total_price}
+                      >
+                        Thanh toán
+                      </button>
+                    </div>
+                  )}
+                  
+                  {paymentMethod === 'VNPay' && (
+                    <div className="vnpay-payment">
+                      <p>Bạn sẽ được chuyển đến cổng thanh toán VNPay.</p>
+                      
+                      {error && <div className="error-message">{error}</div>}
+                      
+                      <button 
+                        className="pay-btn"
+                        onClick={handleVNPayPayment}
+                      >
+                        Thanh toán qua VNPay
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </>
           ) : (
             <div className="no-order-selected">
-              <p>Vui lòng chọn đơn hàng để {viewMode === 'pending' ? 'thanh toán' : 'xem chi tiết'}</p>
+              <p>Vui lòng chọn một đơn hàng để thanh toán</p>
             </div>
           )}
         </div>
       </div>
+      
+      {isLoading && selectedOrder && (
+        <div className="loading-overlay">
+          <LoadingSpinner 
+            loadingText="Đang xử lý thanh toán..." 
+            showDots={true} 
+            showSkeleton={false}
+          />
+        </div>
+      )}
     </div>
   );
 };

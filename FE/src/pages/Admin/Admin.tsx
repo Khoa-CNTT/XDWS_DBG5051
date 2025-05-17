@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
 import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaList, FaMoneyBillWave, } from 'react-icons/fa';
@@ -14,7 +14,29 @@ import { useNavigate } from 'react-router-dom';
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('qrcode');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+  
+  // Thêm xử lý responsive
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setIsMobile(true);
+        // Không tự động thu gọn sidebar nữa
+      } else {
+        setIsMobile(false);
+      }
+    };
+    
+    // Kiểm tra ban đầu
+    handleResize();
+    
+    // Thêm event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Dọn dẹp
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -120,6 +142,11 @@ const Admin = () => {
 
       <div className={`main-content ${isSidebarCollapsed ? 'expanded' : ''}`}>
         <div className="content-header">
+          {isMobile && (
+            <button className="mobile-toggle-btn" onClick={toggleSidebar}>
+              <FaBars size={20} />
+            </button>
+          )}
           <h1>
             {activeTab === 'dashboard' && 'Tổng quan'}
             {activeTab === 'qrcode' && 'Mã QR đặt món'}
@@ -129,7 +156,6 @@ const Admin = () => {
             {activeTab === 'table' && 'Quản Lý Bàn'}
             {activeTab === 'staff' && 'Quản Lý Nhân Viên'}
             {activeTab === 'payment' && 'Quản Lý Thanh toán'}
-
           </h1>
           <div className="admin-info">
             <span className="admin-name">Admin</span>

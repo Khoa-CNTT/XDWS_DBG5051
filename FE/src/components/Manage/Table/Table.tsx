@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaCheck, FaTimes, FaCalendarAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaCheck, FaTimes, FaCalendarAlt, FaSyncAlt } from 'react-icons/fa';
 import './Table.scss';
 import { Toast } from '../../Toast/Toast';
 import { tableService, Table, TableRequest } from '../../../services/tableService';
@@ -48,6 +48,13 @@ const TableManagement = () => {
   const [selectedTableForReservation, setSelectedTableForReservation] = useState<string>('');
   const [availableTablesForReservation, setAvailableTablesForReservation] = useState<Table[]>([]);
 
+  // Thêm state cho bộ lọc ngày
+  const [filterDate, setFilterDate] = useState<string>('');
+  const [filteredReservations, setFilteredReservations] = useState<Booking[]>([]);
+
+  // Thêm state để theo dõi việc cập nhật danh sách đặt bàn
+  const [refreshBookings, setRefreshBookings] = useState<boolean>(false);
+
   // Lấy dữ liệu bàn và đặt bàn từ API
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +67,7 @@ const TableManagement = () => {
         const bookingsData = await bookingService.getAllBookings();
         setReservations(bookingsData);
         
+        // Lọc ra các đặt bàn đang chờ xác nhận để hiển thị thông báo
         const pending = bookingsData.filter(booking => booking.status === 'pending');
         setPendingReservations(pending);
         
@@ -95,6 +103,41 @@ const TableManagement = () => {
     return () => clearInterval(pollingInterval);
   }, []);
 
+  // Thêm useEffect để tự động cập nhật danh sách đặt bàn
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const bookingsData = await bookingService.getAllBookings();
+        setReservations(bookingsData);
+        
+        // Lọc ra các đặt bàn đang chờ xác nhận để hiển thị thông báo
+        const pending = bookingsData.filter(booking => booking.status === 'pending');
+        setPendingReservations(pending);
+        
+        if (pending.length > 0) {
+          setHasNewReservations(true);
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+    
+    fetchBookings();
+    
+    // Thiết lập interval để kiểm tra đặt bàn mới mỗi 30 giây
+    const bookingInterval = setInterval(() => {
+      fetchBookings();
+      console.log('Checking for new bookings...');
+    }, 30000);
+    
+    return () => clearInterval(bookingInterval);
+  }, [refreshBookings]);
+
+  // Thêm hàm để cập nhật danh sách đặt bàn
+  const refreshBookingsList = () => {
+    setRefreshBookings(prev => !prev);
+  };
+
   // Lọc bàn phù hợp cho đặt bàn
   useEffect(() => {
     if (selectedReservation) {
@@ -129,6 +172,20 @@ const TableManagement = () => {
     
     setFilteredTables(filtered);
   }, [searchTerm, filterStatus, tables]);
+
+  // Thêm useEffect để lọc đặt bàn theo ngày
+  useEffect(() => {
+    if (!filterDate) {
+      // Nếu không có ngày lọc, hiển thị tất cả đặt bàn
+      setFilteredReservations(reservations);
+    } else {
+      // Lọc đặt bàn theo ngày
+      const filtered = reservations.filter(reservation => 
+        reservation.booking_date === filterDate
+      );
+      setFilteredReservations(filtered);
+    }
+  }, [filterDate, reservations]);
 
   // Hiển thị toast
   const showToastMessage = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
@@ -381,6 +438,80 @@ const TableManagement = () => {
     }
   };
 
+  // Hàm xử lý thay đổi ngày lọc
+  const handleFilterDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterDate(e.target.value);
+  };
+
+  // Hàm xóa bộ lọc ngày
+  const clearDateFilter = () => {
+    setFilterDate('');
+  };
+
+  // Xử lý xác nhận đặt bàn
+  const handleConfirmReservation = async () => {
+    if (!selectedReservation || !selectedTableForReservation) return;
+    
+    try {
+      // Cập nhật trạng thái bàn thành "reserved"
+      await tableService.updateTableStatus(selectedTableForReservation, 'reserved');
+      
+      // Cập nhật trạng thái đặt bàn và gán tableId
+      await bookingService.updateBookingStatus(
+        selectedReservation.id, 
+        'confirmed', 
+        selectedTableForReservation
+      );
+      
+      showToastMessage('Đã xác nhận đặt bàn thành công');
+      
+      // Đóng modal chi tiết đặt bàn
+      setIsReservationDetailOpen(false);
+      
+      // Refresh data
+      refreshBookingsList();
+      
+      // Refresh table data
+      const tablesData = await tableService.getAllTables();
+      setTables(tablesData);
+      setFilteredTables(tablesData);
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || 'Không thể xác nhận đặt bàn';
+        showToastMessage(`Lỗi: ${errorMessage}`, 'error');
+      } else {
+        showToastMessage('Không thể xác nhận đặt bàn', 'error');
+      }
+    }
+  };
+
+  // Xử lý hủy đặt bàn
+  const handleCancelReservation = async () => {
+    if (!selectedReservation) return;
+    
+    try {
+      await bookingService.updateBookingStatus(selectedReservation.id, 'cancelled');
+      showToastMessage('Đã hủy đặt bàn');
+      
+      // Đóng modal chi tiết đặt bàn
+      setIsReservationDetailOpen(false);
+      
+      // Refresh data
+      refreshBookingsList();
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || 'Không thể hủy đặt bàn';
+        showToastMessage(`Lỗi: ${errorMessage}`, 'error');
+      } else {
+        showToastMessage('Không thể hủy đặt bàn', 'error');
+      }
+    }
+  };
+
   return (
     <div className="table-management">
       <div className="table-management-header">
@@ -484,7 +615,7 @@ const TableManagement = () => {
       ) : (
         <div className="reservations-section">
           <div className="reservations-header">
-            <h2>Danh sách đặt bàn đang chờ xác nhận ({pendingReservations.length})</h2>
+            <h2>Danh sách đặt bàn</h2>
             <button
               className="back-btn"
               onClick={() => setShowReservations(false)}
@@ -493,8 +624,27 @@ const TableManagement = () => {
             </button>
           </div>
           
+          <div className="reservations-filter">
+            <div className="filter-group">
+              <label htmlFor="filter-date">Lọc theo ngày:</label>
+              <div className="date-filter-controls">
+                <input
+                  type="date"
+                  id="filter-date"
+                  value={filterDate}
+                  onChange={handleFilterDateChange}
+                />
+                {filterDate && (
+                  <button className="clear-filter-btn" onClick={clearDateFilter}>
+                    Xóa bộ lọc
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          
           <div className="reservations-list">
-            {pendingReservations.length > 0 ? (
+            {filteredReservations.length > 0 ? (
               <table className="reservations-table">
                 <thead>
                   <tr>
@@ -504,15 +654,15 @@ const TableManagement = () => {
                     <th>Khách</th>
                     <th>Tên khách hàng</th>
                     <th>Liên lạc</th>
-                    <th>Thời gian đặt</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingReservations.map(reservation => {
+                  {filteredReservations.map(reservation => {
                     console.log('Reservation data:', reservation);
                     return (
-                      <tr key={reservation.id}>
+                      <tr key={reservation.id} className={`reservation-row ${reservation.status}`}>
                         <td>{reservation.id}</td>
                         <td>{formatDate(reservation.booking_date)}</td>
                         <td>{formatTime(reservation.booking_time)}</td>
@@ -522,7 +672,12 @@ const TableManagement = () => {
                           <div>📞 {reservation.phone}</div>
                           <div>✉️ {reservation.email}</div>
                         </td>
-                        <td>{formatDateTime(reservation.created_at)}</td>
+                        <td>
+                          <span className={`status-badge status-${reservation.status}`}>
+                            {reservation.status === 'pending' ? 'Chờ xác nhận' : 
+                             reservation.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}
+                          </span>
+                        </td>
                         <td>
                           <div className="table-row-actions">
                             <button
@@ -540,7 +695,11 @@ const TableManagement = () => {
               </table>
             ) : (
               <div className="no-reservations-message">
-                <p>Không có đặt bàn nào đang chờ xác nhận</p>
+                <p>
+                  {filterDate 
+                    ? `Không có đặt bàn nào vào ngày ${formatDate(filterDate)}` 
+                    : 'Không có đặt bàn nào'}
+                </p>
               </div>
             )}
           </div>
@@ -634,16 +793,16 @@ const TableManagement = () => {
                 <h3>Thông tin khách hàng</h3>
                 <div className="detail-grid">
                   <div className="detail-item">
-                    <span className="detail-label">Họ tên:</span>
+                    <span className="detail-label">Tên:</span>
                     <span className="detail-value">{selectedReservation.customer_name || selectedReservation.name}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Số điện thoại:</span>
-                    <span className="detail-value">{selectedReservation.phone}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Email:</span>
                     <span className="detail-value">{selectedReservation.email}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Số điện thoại:</span>
+                    <span className="detail-value">{selectedReservation.phone}</span>
                   </div>
                 </div>
               </div>
@@ -659,75 +818,68 @@ const TableManagement = () => {
                 </div>
               </div>
               
-              <div className="detail-section">
-                <h3>Xác nhận đặt bàn</h3>
-                <div className="table-selection">
-                  <label htmlFor="table-select">Chọn bàn:</label>
-                  <select
-                    id="table-select"
-                    value={selectedTableForReservation}
-                    onChange={handleTableSelectionChange}
-                    className="table-select"
-                  >
-                    <option value="">-- Chọn bàn --</option>
-                    {availableTablesForReservation.length > 0 ? (
-                      availableTablesForReservation.map(table => (
-                        <option key={table.id} value={table.id}>
-                          Bàn {table.table_number}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>Không có bàn trống</option>
+              {selectedReservation.status === 'pending' && (
+                <div className="detail-section">
+                  <h3>Xác nhận đặt bàn</h3>
+                  <div className="table-selection">
+                    <label htmlFor="table-select">Chọn bàn:</label>
+                    <select
+                      id="table-select"
+                      value={selectedTableForReservation}
+                      onChange={handleTableSelectionChange}
+                      className="table-select"
+                    >
+                      <option value="">-- Chọn bàn --</option>
+                      {availableTablesForReservation.length > 0 ? (
+                        availableTablesForReservation.map(table => (
+                          <option key={table.id} value={table.id}>
+                            Bàn {table.table_number}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled>Không có bàn trống</option>
+                      )}
+                    </select>
+                    {availableTablesForReservation.length === 0 && (
+                      <p className="no-tables-message">Hiện tại không có bàn trống</p>
                     )}
-                  </select>
-                  {availableTablesForReservation.length === 0 && (
-                    <p className="no-tables-message">Hiện tại không có bàn trống</p>
-                  )}
-                </div>
-                
-                <div className="confirmation-actions">
-                  <button
-                    className="confirm-btn"
-                    onClick={async () => {
-                      try {
-                        await bookingService.updateBookingStatus(selectedReservation.id, 'confirmed');
-                        showToastMessage('Đã xác nhận đặt bàn thành công');
-                        setIsReservationDetailOpen(false);
-                        // Refresh data
-                        const bookingsData = await bookingService.getAllBookings();
-                        setReservations(bookingsData);
-                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
-                      } catch (error) {
-                        console.error('Error confirming booking:', error);
-                        showToastMessage('Không thể xác nhận đặt bàn', 'error');
-                      }
-                    }}
-                    disabled={!selectedTableForReservation}
-                  >
-                    <FaCheck /> Xác nhận
-                  </button>
+                  </div>
                   
-                  <button
-                    className="cancel-btn"
-                    onClick={async () => {
-                      try {
-                        await bookingService.updateBookingStatus(selectedReservation.id, 'cancelled');
-                        showToastMessage('Đã hủy đặt bàn');
-                        setIsReservationDetailOpen(false);
-                        // Refresh data
-                        const bookingsData = await bookingService.getAllBookings();
-                        setReservations(bookingsData);
-                        setPendingReservations(bookingsData.filter(booking => booking.status === 'pending'));
-                      } catch (error) {
-                        console.error('Error cancelling booking:', error);
-                        showToastMessage('Không thể hủy đặt bàn', 'error');
-                      }
-                    }}
-                  >
-                    <FaTimes /> Hủy đặt bàn
-                  </button>
+                  <div className="confirmation-actions">
+                    <button
+                      className="confirm-btn"
+                      onClick={handleConfirmReservation}
+                      disabled={!selectedTableForReservation}
+                    >
+                      <FaCheck /> Xác nhận
+                    </button>
+                    
+                    <button
+                      className="cancel-btn"
+                      onClick={handleCancelReservation}
+                    >
+                      <FaTimes /> Hủy đặt bàn
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
+              
+              {selectedReservation.status !== 'pending' && (
+                <div className="detail-section">
+                  <div className="status-message">
+                    <p>
+                      {selectedReservation.status === 'confirmed' 
+                        ? 'Đặt bàn này đã được xác nhận' 
+                        : 'Đặt bàn này đã bị hủy'}
+                    </p>
+                    {selectedReservation.status === 'confirmed' && selectedReservation.tableId && (
+                      <p>Bàn đã chọn: Bàn {
+                        tables.find(t => t.id === selectedReservation.tableId)?.table_number || selectedReservation.tableId
+                      }</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

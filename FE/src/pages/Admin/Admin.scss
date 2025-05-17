@@ -205,6 +205,20 @@
             justify-content: space-between;
             align-items: center;
 
+            .mobile-toggle-btn {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--text-color);
+                font-size: 20px;
+                cursor: pointer;
+                margin-right: 15px;
+
+                &:hover {
+                    color: var(--primary-color);
+                }
+            }
+
             h1 {
                 margin: 0;
                 font-size: 24px;
@@ -317,19 +331,41 @@
 @media (max-width: 768px) {
     .admin-dashboard {
         .sidebar {
-            position: fixed;
-            height: 100%;
-            z-index: 999;
+            width: 70px;
 
             &.collapsed {
-                width: 0;
-                overflow: hidden;
+                width: 70px;
+            }
+
+            .sidebar-header {
+                padding: var(--spacing-md) var(--spacing-sm);
+
+                .logo {
+                    margin-right: 0;
+                }
+
+                h2 {
+                    display: none;
+                }
+            }
+
+            .sidebar-menu-item {
+                padding: 12px 0;
+                justify-content: center;
+
+                svg {
+                    margin-right: 0;
+                }
+
+                span {
+                    display: none;
+                }
             }
         }
 
         .main-content {
-            margin-left: 0;
-            width: 100%;
+            margin-left: 70px;
+            width: calc(100% - 70px);
         }
     }
 }

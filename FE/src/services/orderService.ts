@@ -23,6 +23,7 @@ export interface Order {
   table: {
     id: number;
     name: string;
+    table_number?: string;
   };
   created_at: string;
   updated_at: string;
@@ -37,7 +38,7 @@ export const orderService = {
 
   // Lấy chi tiết đơn hàng
   getOrderById: async (id: number): Promise<Order> => {
-    const response = await axios.get(`${API_URL}/staff/order-item/${id}`);
+    const response = await axios.get(`${API_URL}/order-item/${id}`);
     return response.data;
   },
 

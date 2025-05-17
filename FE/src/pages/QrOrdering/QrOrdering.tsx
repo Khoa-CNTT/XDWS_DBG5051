@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import FloatingCart from '../../components/FloatingCart/FloatingCart';
 import { Toast } from '../../components/Toast/Toast';
 import LoadingSpinner from '../../components/Loading/LoadingSpinner';
+import { getImageUrl } from '../../components/Manage/Menu/Menu.tsx';
 import { qrOrderService, MenuItem, CartItem } from '../../services/qrOrderService';
+import { api } from '../../Api/AxiosIntance';
 import './QrOrdering.scss';
 
+
 const QrOrdering = () => {
-  const { tableId } = useParams<{ tableId?: string }>();
+  const [searchParams] = useSearchParams();
+  const tableNumber = searchParams.get('table');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -22,13 +26,22 @@ const QrOrdering = () => {
   const [loading, setLoading] = useState(true);
   const cartSectionRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [placedOrderItems, setPlacedOrderItems] = useState<CartItem[]>([]);
 
-  // Show toast message helper
+  useEffect(() => {
+    // Bỏ console.log
+  }, [tableNumber]);
+
   const showToastMessage = useCallback((message: string) => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
+      .replace('₫', 'đ').replace('.', '.');
+  };
 
   // Fetch menu data
   useEffect(() => {
@@ -60,38 +73,32 @@ const QrOrdering = () => {
   // Fetch cart data
   useEffect(() => {
     const fetchCart = async () => {
-      if (!tableId) return;
+      if (!tableNumber) return;
       
       try {
         // Kiểm tra trạng thái bàn trước
-        const tableStatus = await qrOrderService.checkTableStatus(parseInt(tableId));
-        console.log('Table status:', tableStatus);
+        const tableStatus = await qrOrderService.checkTableStatus(tableNumber);
         
         if (tableStatus.status !== 'available') {
-          showToastMessage(`Bàn ${tableId} không khả dụng. Vui lòng chọn bàn khác.`);
+          showToastMessage(`Bàn ${tableNumber} không khả dụng. Vui lòng chọn bàn khác.`);
           return;
         }
 
-        console.log('Fetching cart for table:', tableId);
-        const cartData = await qrOrderService.getCart(parseInt(tableId));
-        console.log('Cart data:', cartData);
+        const cartData = await qrOrderService.getCart();
         
         if (Array.isArray(cartData)) {
-          console.log('Setting cart with data:', cartData);
           setCart(cartData);
         } else {
-          console.error('Invalid cart data format:', cartData);
           setCart([]);
         }
       } catch (error) {
-        console.error("Error fetching cart:", error);
         showToastMessage("Không thể tải giỏ hàng");
         setCart([]);
       }
     };
 
     fetchCart();
-  }, [tableId, showToastMessage]);
+  }, [tableNumber, showToastMessage]);
 
   // Filter menu items based on selected category
   const filteredMenuItems = useCallback(() => {
@@ -104,141 +111,148 @@ const QrOrdering = () => {
     return menuItems.filter(item => item.category.name === selectedCategory);
   }, [menuItems, selectedCategory]);
 
-  // Add to cart handler
+  // Xử lý thêm vào giỏ hàng
   const addToCart = useCallback(async (menuId: number) => {
-    if (orderPlaced || !tableId) return;
+    if (orderPlaced || !tableNumber) return;
 
     try {
-      // Kiểm tra trạng thái bàn trước
-      const tableStatus = await qrOrderService.checkTableStatus(parseInt(tableId));
-      console.log('Table status:', tableStatus);
-      
-      if (tableStatus.status !== 'available') {
-        showToastMessage(`Bàn ${tableId} không khả dụng. Vui lòng chọn bàn khác.`);
-        return;
-      }
+      // Thêm hiệu ứng ngay lập tức để người dùng thấy phản hồi
+      setShowAddedAnimation(menuId);
+      setTimeout(() => setShowAddedAnimation(null), 500);
 
-      console.log('Adding item to cart:', { menuId, tableId });
-      const response = await qrOrderService.increaseCartItem(menuId, parseInt(tableId));
-      console.log('Increase cart response:', response);
+      // Thêm vào giỏ hàng
+      const response = await qrOrderService.addToCart(menuId);
       
-      if (response.status === 'success') {
-        // Sau khi tăng số lượng thành công, lấy lại giỏ hàng mới
-        const cartData = await qrOrderService.getCart(parseInt(tableId));
-        console.log('Updated cart data:', cartData);
+      if (response.message === 'Thêm vào giỏ hàng thành công!') {
+        // Sau khi thêm thành công, lấy lại giỏ hàng mới
+        const cartData = await qrOrderService.getCart();
         
         if (Array.isArray(cartData)) {
-          console.log('Setting cart with updated data:', cartData);
           setCart(cartData);
-          setShowAddedAnimation(menuId);
-          setTimeout(() => setShowAddedAnimation(null), 500);
         } else {
-          console.error('Invalid cart data format:', cartData);
           showToastMessage("Lỗi khi cập nhật giỏ hàng");
         }
       } else {
-        console.error('Failed to add item to cart:', response);
         showToastMessage("Không thể thêm món vào giỏ hàng");
       }
     } catch (error) {
-      console.error("Error adding to cart:", error);
       showToastMessage("Không thể thêm món vào giỏ hàng");
     }
-  }, [orderPlaced, tableId, showToastMessage]);
+  }, [orderPlaced, tableNumber, showToastMessage]);
 
   // Remove from cart handler
   const removeFromCart = useCallback(async (menuId: number) => {
-    if (orderPlaced || !tableId) return;
+    if (orderPlaced || !tableNumber) return;
 
     try {
-      console.log('Removing item from cart:', { menuId, tableId });
-      const response = await qrOrderService.decreaseCartItem(menuId, parseInt(tableId));
-      console.log('Decrease cart response:', response);
-      
-      if (response.status === 'success') {
-        // Sau khi giảm số lượng thành công, lấy lại giỏ hàng mới
-        const cartData = await qrOrderService.getCart(parseInt(tableId));
-        console.log('Updated cart data:', cartData);
-        
-        if (Array.isArray(cartData)) {
-          console.log('Setting cart with updated data:', cartData);
-          setCart(cartData);
-        } else {
-          console.error('Invalid cart data format:', cartData);
-          showToastMessage("Lỗi khi cập nhật giỏ hàng");
+      // Cập nhật UI ngay lập tức để tạo cảm giác phản hồi nhanh
+      const updatedCart = cart.map(item => {
+        if (item.menu.id === menuId) {
+          return { ...item, quantity: item.quantity - 1 };
         }
-      } else {
-        console.error('Failed to remove item from cart:', response);
-        showToastMessage("Không thể xóa món khỏi giỏ hàng");
+        return item;
+      }).filter(item => item.quantity > 0);
+      
+      setCart(updatedCart);
+      
+      // Gửi yêu cầu giảm số lượng lên server
+      await qrOrderService.decreaseCartItem(menuId);
+      
+      // Cập nhật lại giỏ hàng từ server
+      const cartData = await qrOrderService.getCart();
+      
+      if (Array.isArray(cartData)) {
+        setCart(cartData);
       }
     } catch (error) {
-      console.error("Error removing from cart:", error);
       showToastMessage("Không thể xóa món khỏi giỏ hàng");
+      
+      // Nếu có lỗi, lấy lại giỏ hàng từ server để đảm bảo dữ liệu chính xác
+      const cartData = await qrOrderService.getCart();
+      if (Array.isArray(cartData)) {
+        setCart(cartData);
+      }
     }
-  }, [orderPlaced, tableId, showToastMessage]);
+  }, [orderPlaced, tableNumber, showToastMessage, cart]);
 
   // Calculate total
-  const calculateTotal = useCallback(() => {
-    console.log('Current cart items:', cart);
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  }, [cart]);
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + (item.menu.price * item.quantity), 0);
+  };
 
   // Get total items in cart
   const getCartItemCount = useCallback(() => {
-    const count = cart.reduce((count, item) => count + item.quantity, 0);
-    console.log('Cart item count:', count, 'Cart items:', cart);
-    return count;
+    return cart.reduce((count, item) => count + item.quantity, 0);
   }, [cart]);
 
   // Render cart items
   const renderCartItems = () => {
     return cart.map(item => (
-      <div key={item.id} className="cart-item">
+      <div key={item.menu.id} className="cart-item">
         <div className="item-info">
           <h3>{item.menu.name}</h3>
-          <p className="item-price">{item.price.toLocaleString()}đ</p>
+          <p className="item-price">{formatCurrency(item.menu.price)}</p>
         </div>
         <div className="item-actions">
-          <button onClick={() => removeFromCart(item.menu_id)}>-</button>
+          <button onClick={() => removeFromCart(item.menu.id)}>-</button>
           <span>{item.quantity}</span>
-          <button onClick={() => addToCart(item.menu_id)}>+</button>
+          <button onClick={() => addToCart(item.menu.id)}>+</button>
         </div>
         <div className="item-total">
-          {(item.price * item.quantity).toLocaleString()}đ
+          {formatCurrency(item.menu.price * item.quantity)}
         </div>
       </div>
     ));
   };
 
-  // Handle order submission
+  // Xử lý đặt món
   const handleOrder = useCallback(async () => {
-    if (!tableId || cart.length === 0) return;
+    if (!tableNumber || cart.length === 0) return;
 
     try {
-      console.log('Placing order:', { tableId, cart });
+      // Hiển thị trạng thái đang xử lý
+      setLoading(true);
+      
+      // Lưu thông tin giỏ hàng trước khi xóa để hiển thị chi tiết đơn hàng
+      setPlacedOrderItems([...cart]);
+      
+      // Lấy danh sách bàn để tìm ID của bàn dựa trên table_number
+      const tables = await api.get('/table');
+      const table = tables.data.data.find((t: any) => t.table_number === tableNumber);
+      
+      if (!table) {
+        throw new Error(`Không tìm thấy bàn ${tableNumber}`);
+      }
+      
+      // Tiến hành đặt món
       const orderData = {
-        number_table: parseInt(tableId),
-        items: cart.map(item => ({
-          menu_id: item.menu_id,
-          quantity: item.quantity,
-          price: item.price
-        }))
+        number_table: table.id
       };
-
+      
       const response = await qrOrderService.placeOrder(orderData);
-      console.log('Place order response:', response);
+      
       setOrderStatus('pending');
       setOrderPlaced(true);
-      showToastMessage(`Đặt món thành công! Bàn số ${tableId}. Nhân viên sẽ mang món ăn đến cho bạn trong giây lát.`);
-    } catch (error) {
-      console.error("Error placing order:", error);
-      showToastMessage("Không thể đặt món. Vui lòng thử lại sau.");
+      showToastMessage(`Đặt món thành công! Bàn số ${tableNumber}. Nhân viên sẽ mang món ăn đến cho bạn trong giây lát.`);
+      
+      // Xóa giỏ hàng sau khi đặt hàng thành công
+      setCart([]);
+    } catch (error: any) {
+      if (error.response) {
+        showToastMessage(`Không thể đặt món: ${error.response.data.message || 'Vui lòng thử lại sau'}`);
+      } else {
+        const errorMessage = error.message || 'Lỗi không xác định';
+        showToastMessage(`Không thể đặt món: ${errorMessage}`);
+      }
+    } finally {
+      setLoading(false);
     }
-  }, [tableId, cart, showToastMessage]);
+  }, [tableNumber, cart, showToastMessage]);
 
   // Handle new order creation
   const handleNewOrder = useCallback(() => {
     setCart([]);
+    setPlacedOrderItems([]);
     setNote('');
     setOrderPlaced(false);
     setOrderStatus(null);
@@ -294,8 +308,8 @@ const QrOrdering = () => {
     );
   }, [orderStatus, handleNewOrder]);
 
-  // Handle missing tableId
-  if (!tableId) {
+  // Handle missing tableNumber
+  if (!tableNumber) {
     return (
       <div className="error-page">
         <div className="container">
@@ -309,12 +323,27 @@ const QrOrdering = () => {
 
   if (loading) {
     return (
-      <LoadingSpinner 
-        loadingText="Đang tải thực đơn..." 
-        showDots={true}
-        showSkeleton={true}
-        skeletonCount={4}
-      />
+      <div className="qr-ordering-page">
+        <div className="qr-header">
+          <div className="container">
+            <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
+            <h1>Đặt món trực tiếp</h1>
+            <p>Bàn số: {tableNumber}</p>
+          </div>
+        </div>
+
+        <div className="qr-content">
+          <div className="container">
+            <LoadingSpinner 
+              loadingText="Đang tải danh sách món ăn..." 
+              showDots={true}
+              showSkeleton={true}
+              skeletonCount={4}
+              className="embedded"
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -324,7 +353,7 @@ const QrOrdering = () => {
         <div className="container">
           <img src="/src/assets/logo-smartorder.png" alt="Smart Order" className="logo" />
           <h1>Đặt món trực tiếp</h1>
-          <p>Bàn số: {tableId}</p>
+          <p>Bàn số: {tableNumber}</p>
         </div>
       </div>
 
@@ -337,13 +366,13 @@ const QrOrdering = () => {
               <div className="order-details">
                 <h3>Chi tiết đơn hàng</h3>
                 <div className="order-items">
-                  {cart.map(item => (
-                    <div key={item.id} className="order-item">
+                  {placedOrderItems.map(item => (
+                    <div key={item.menu.id} className="order-item">
                       <div className="item-name-quantity">
                         <span className="quantity">{item.quantity}x</span>
                         <span className="name">{item.menu.name}</span>
                       </div>
-                      <span className="price">{(item.price * item.quantity).toLocaleString()}đ</span>
+                      <span className="price">{formatCurrency(item.menu.price * item.quantity)}</span>
                     </div>
                   ))}
                 </div>
@@ -355,7 +384,7 @@ const QrOrdering = () => {
                 )}
                 <div className="order-total">
                   <span>Tổng tiền:</span>
-                  <span>{calculateTotal().toLocaleString()}đ</span>
+                  <span>{formatCurrency(placedOrderItems.reduce((total, item) => total + (item.menu.price * item.quantity), 0))}</span>
                 </div>
               </div>
             </div>
@@ -391,12 +420,12 @@ const QrOrdering = () => {
                     >
                       {item.image && (
                         <div className="item-image">
-                          <img src={item.image} alt={item.name} />
+                          <img src={getImageUrl(item.image)} alt={item.name} />
                         </div>
                       )}
                       <div className="item-details">
                         <h3 className="item-name">{item.name}</h3>
-                        <p className="item-price">{item.price.toLocaleString()}đ</p>
+                        <p className="item-price">{formatCurrency(item.price)}</p>
                         <button 
                           className="add-to-cart-btn"
                           onClick={() => addToCart(item.id)}
@@ -443,7 +472,7 @@ const QrOrdering = () => {
                   <div className="cart-total">
                     <div className="total-row">
                       <span>Tổng tiền:</span>
-                      <span>{calculateTotal().toLocaleString()}đ</span>
+                      <span>{formatCurrency(calculateTotal())}</span>
                     </div>
                   </div>
 

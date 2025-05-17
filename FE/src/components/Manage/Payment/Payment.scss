@@ -3,6 +3,27 @@
     flex-direction: column;
     height: 100%;
 
+    // Thêm style cho loading overlay
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    // Style cho embedded loading spinner
+    .loading-spinner.embedded {
+        min-height: unset;
+        background-color: transparent;
+        padding: 2rem 0;
+    }
+
     .payment-management-header {
         display: flex;
         justify-content: space-between;

@@ -48,7 +48,7 @@ const ChatBot = () => {
                 {messages.map((msg, i) => (
                     <div key={i} className={`message ${msg.sender}`}>
                         <div className="message-content">
-                            <b>{msg.sender === 'user' ? 'Bạn' : 'Bot'}:</b> {msg.text}
+                            <b>{msg.sender === 'user' ? 'Bạn' : 'Nhà hàng'}:</b> {msg.text}
                         </div>
                     </div>
                 ))}

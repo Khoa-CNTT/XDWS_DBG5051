@@ -44,8 +44,12 @@ export const bookingService = {
   },
 
   // Update booking status
-  updateBookingStatus: async (id: string, status: 'confirmed' | 'cancelled'): Promise<Booking> => {
-    const response = await axios.put(`${API_URL}/admin/update-booking/${id}`, { status }, authHeader());
+  updateBookingStatus: async (id: string, status: 'confirmed' | 'cancelled', tableId?: string): Promise<Booking> => {
+    const payload = { status };
+    if (tableId && status === 'confirmed') {
+      Object.assign(payload, { tableId });
+    }
+    const response = await axios.put(`${API_URL}/admin/update-booking/${id}`, payload, authHeader());
     return response.data.data;
   }
 }; 

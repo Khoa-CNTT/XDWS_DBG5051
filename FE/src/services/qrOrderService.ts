@@ -1,80 +1,15 @@
-// import { api } from '../Api/AxiosIntance';
-
-// export interface MenuItem {
-//   id: number;
-//   name: string;
-//   price: number;
-//   category: {
-//     id: number;
-//     name: string;
-//   };
-//   image?: string;
-//   popular?: boolean;
-// }
-
-// export interface CartItem {
-//   id: number;
-//   menu_id: number;
-//   quantity: number;
-//   price: number;
-//   menu: MenuItem;
-// }
-
-// export interface OrderRequest {
-//   number_table: number;
-//   items: {
-//     menu_id: number;
-//     quantity: number;
-//     price: number;
-//   }[];
-// }
-
-// class QrOrderService {
-//   // Lấy danh sách menu
-//   async getMenuItems() {
-//     const response = await api.get('/list-menu');
-//     return response.data.data;
-//   }
-
-//   // Lấy danh sách categories
-//   async getCategories() {
-//     const response = await api.get('/cate');
-//     return response.data.data;
-//   }
-
-//   // Kiểm tra trạng thái bàn
-//   async checkTableStatus(tableId: number) {
-//     const response = await api.get(`/table/${tableId}`);
-//     return response.data.data;
-//   }
-
-//   // Lấy giỏ hàng
-//   async getCart(tableId: number) {
-//     const response = await api.get(`/table/${tableId}/cart`);
-//     return response.data.data;
-//   }
-
-//   // Tăng số lượng món trong giỏ
-//   async increaseCartItem(menuId: number, tableId: number) {
-//     const response = await api.post(`/table/${tableId}/cart/up`, { menu_id: menuId });
-//     return response.data;
-//   }
-
-//   // Giảm số lượng món trong giỏ
-//   async decreaseCartItem(menuId: number, tableId: number) {
-//     const response = await api.post(`/table/${tableId}/cart/down`, { menu_id: menuId });
-//     return response.data;
-//   }
-
-//   // Đặt món
-//   async placeOrder(orderData: OrderRequest) {
-//     const response = await api.post('/orders/place', orderData);
-//     return response.data;
-//   }
-// }
-
-// export const qrOrderService = new QrOrderService(); 
+import axios from 'axios';
 import { api } from '../Api/AxiosIntance';
+
+// Tạo instance axios riêng cho các route web (không phải api)
+const webApi = axios.create({
+  baseURL: 'http://localhost:8000',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
 
 export interface MenuItem {
   id: number;
@@ -89,11 +24,8 @@ export interface MenuItem {
 }
 
 export interface CartItem {
-  id: number;
-  menu_id: number;
-  quantity: number;
-  price: number;
   menu: MenuItem;
+  quantity: number;
 }
 
 export interface OrderRequest {
@@ -118,35 +50,63 @@ class QrOrderService {
     return response.data.data;
   }
 
-  // Kiểm tra trạng thái bàn
-  async checkTableStatus(tableId: number) {
-    const response = await api.get(`/table/${tableId}`);
+  // Kiểm tra trạng thái bàn theo table_number
+  async checkTableStatus(tableNumber: string) {
+    try {
+      // Đầu tiên lấy danh sách tất cả các bàn
+      const response = await api.get('/table');
+      const tables = response.data.data;
+      
+      // Tìm bàn có table_number khớp với tham số
+      const table = tables.find((t: any) => t.table_number === tableNumber);
+      
+      if (!table) {
+        throw new Error(`Không tìm thấy bàn ${tableNumber}`);
+      }
+      
+      return table;
+    } catch (error) {
+      console.error('Error checking table status:', error);
+      throw error;
+    }
+  }
+
+  // Lấy giỏ hàng - sử dụng webApi vì đây là route web
+  async getCart() {
+    const response = await webApi.get(`/cart/`);
     return response.data.data;
   }
 
-  // Lấy giỏ hàng
-  async getCart(tableId: number) {
-    const response = await api.get(`/cart`);
-    return response.data.data;
-  }
-
-  // Tăng số lượng món trong giỏ
-  async increaseCartItem(menuId: number, tableId: number) {
-    const response = await api.post(`/cart/up`, { menu_id: menuId });
+  // Thêm món vào giỏ hàng - sử dụng webApi vì đây là route web
+  async addToCart(menuId: number) {
+    const response = await webApi.post(`/cart/add-to-cart`, { menu_id: menuId });
     return response.data;
   }
 
-  // Giảm số lượng món trong giỏ
-  async decreaseCartItem(menuId: number, tableId: number) {
-    const response = await api.post(`/cart/down`, { menu_id: menuId });
+  // Tăng số lượng món trong giỏ - sử dụng webApi vì đây là route web
+  async increaseCartItem(menuId: number) {
+    const response = await webApi.post(`/cart/up`, { id: menuId });
     return response.data;
   }
 
-  // Đặt món
-  async placeOrder(orderData: OrderRequest) {
-    const response = await api.post('/orders/place', orderData);
+  // Giảm số lượng món trong giỏ - sử dụng webApi vì đây là route web
+  async decreaseCartItem(menuId: number) {
+    const response = await webApi.post(`/cart/down`, { id: menuId });
     return response.data;
   }
+
+  // Xóa món khỏi giỏ hàng - sử dụng webApi vì đây là route web
+  async deleteCartItem(menuId: number) {
+    const response = await webApi.post(`/cart/delete`, { id: menuId });
+    return response.data;
+  }
+
+  // Đặt món với dữ liệu giỏ hàng
+  async placeOrder(orderData: { number_table: number }) {
+    const response = await webApi.post('/orders/place', orderData);
+    return response.data;
+  }
+  
 }
 
-export const qrOrderService = new QrOrderService(); 
+export const qrOrderService = new QrOrderService();

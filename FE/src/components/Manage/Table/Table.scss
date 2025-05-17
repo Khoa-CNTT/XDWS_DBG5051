@@ -323,6 +323,28 @@
                 color: var(--text-color);
             }
 
+            .header-actions {
+                display: flex;
+                gap: var(--spacing-sm);
+            }
+
+            .refresh-btn {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-xs);
+                padding: var(--spacing-xs) var(--spacing-md);
+                background-color: var(--primary-color);
+                color: var(--white);
+                border: none;
+                border-radius: var(--border-radius-sm);
+                cursor: pointer;
+                font-size: 0.875rem;
+
+                &:hover {
+                    background-color: darken(#f08404, 10%);
+                }
+            }
+
             .back-btn {
                 padding: var(--spacing-xs) var(--spacing-md);
                 background-color: var(--secondary-color);
@@ -828,5 +850,134 @@
                 }
             }
         }
+    }
+}
+
+// Thêm vào phần CSS cho bảng đặt bàn
+.reservations-table {
+    .reservation-row {
+        &.pending {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        &.confirmed {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        &.cancelled {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+
+        &.status-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        &.status-confirmed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        &.status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+    }
+
+    .table-row-actions {
+        button {
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+    }
+}
+
+// Thêm CSS cho phần lọc theo ngày
+.reservations-filter {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-sm);
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+
+        label {
+            font-weight: 500;
+            color: var(--text-color);
+            min-width: 120px;
+        }
+
+        .date-filter-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex: 1;
+
+            input[type="date"] {
+                padding: var(--spacing-sm);
+                border: 1px solid var(--gray);
+                border-radius: var(--border-radius-sm);
+                min-width: 200px;
+            }
+
+            .clear-filter-btn {
+                padding: var(--spacing-sm) var(--spacing-md);
+                background-color: var(--light-gray);
+                border: none;
+                border-radius: var(--border-radius-sm);
+                cursor: pointer;
+                transition: background-color 0.2s;
+
+                &:hover {
+                    background-color: var(--gray);
+                }
+            }
+        }
+    }
+}
+
+// Thêm CSS cho phần hiển thị trạng thái đặt bàn đã xử lý
+.status-message {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-top: var(--spacing-md);
+    text-align: center;
+
+    p {
+        margin: var(--spacing-sm) 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+}
+
+.detail-value {
+    &.status-confirmed {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    &.status-cancelled {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    &.status-pending {
+        color: #ffc107;
+        font-weight: 600;
     }
 }
