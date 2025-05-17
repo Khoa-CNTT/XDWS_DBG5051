@@ -12,6 +12,16 @@ interface OrderWithPayment extends Order {
   amount_returned?: number;
 }
 
+export const createPayment = async (amount: number) => {
+  const res = await fetch('http://localhost:8000/api/staff/vnpay_payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  });
+  const data = await res.json();
+  return data.url;
+};
+
 const PaymentManagement = () => {
   const [orders, setOrders] = useState<OrderWithPayment[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithPayment | null>(null);
@@ -91,7 +101,7 @@ const PaymentManagement = () => {
       setError('Số tiền khách đưa không đủ!');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
     
@@ -218,13 +228,13 @@ const PaymentManagement = () => {
       <div className="payment-management-header">
         <h2>Quản lý thanh toán</h2>
         <div className="view-toggle">
-          <button 
+          <button
             className={`toggle-btn ${viewMode === 'pending' ? 'active' : ''}`}
             onClick={() => setViewMode('pending')}
           >
             Chờ thanh toán
           </button>
-          <button 
+          <button
             className={`toggle-btn ${viewMode === 'history' ? 'active' : ''}`}
             onClick={() => {
               setViewMode('history');
@@ -235,12 +245,12 @@ const PaymentManagement = () => {
           </button>
         </div>
         <div className="search-bar">
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder={viewMode === 'pending' ? "Tìm kiếm đơn chờ thanh toán..." : "Tìm kiếm lịch sử thanh toán..."}
             value={viewMode === 'pending' ? searchTerm : historySearchTerm}
-            onChange={(e) => viewMode === 'pending' 
-              ? setSearchTerm(e.target.value) 
+            onChange={(e) => viewMode === 'pending'
+              ? setSearchTerm(e.target.value)
               : setHistorySearchTerm(e.target.value)
             }
           />
@@ -259,8 +269,8 @@ const PaymentManagement = () => {
             />
           ) : filteredOrders.length === 0 ? (
             <div className="no-orders">
-              {viewMode === 'pending' 
-                ? 'Không có đơn hàng nào chờ thanh toán' 
+              {viewMode === 'pending'
+                ? 'Không có đơn hàng nào chờ thanh toán'
                 : 'Không có lịch sử thanh toán nào'
               }
             </div>
@@ -290,7 +300,7 @@ const PaymentManagement = () => {
                         </td>
                       )}
                       <td>
-                        <button 
+                        <button
                           className="view-btn"
                           onClick={() => handleOrderSelect(order)}
                         >
@@ -353,7 +363,7 @@ const PaymentManagement = () => {
                       </tfoot>
                     </table>
                   </div>
-                  
+
                   {viewMode !== 'history' && (
                     <button className="print-btn" onClick={handlePrintReceipt}>
                       <FaPrint /> In hóa đơn
@@ -364,7 +374,6 @@ const PaymentManagement = () => {
                 <div className="vnpay-payment">
                   <h3>Thanh toán VNPay</h3>
                   <p>Quét mã QR để thanh toán:</p>
-                  
                   <div className="qr-code">
                     {/* Hiển thị QR code từ vnpayUrl */}
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(vnpayUrl)}`} alt="QR Code" />
@@ -386,7 +395,6 @@ const PaymentManagement = () => {
                   <h3>Thanh toán đơn hàng #{selectedOrder.id}</h3>
                   <p>Bàn: {selectedOrder.table.name}</p>
                   <p>Tổng tiền: <strong>{formatCurrency(selectedOrder.total_price)}</strong></p>
-                  
                   <div className="order-items">
                     <h4>Danh sách món</h4>
                     <table>
@@ -416,7 +424,7 @@ const PaymentManagement = () => {
                       </tfoot>
                     </table>
                   </div>
-                  
+
                   <div className="payment-methods">
                     <h4>Phương thức thanh toán</h4>
                     <div className="method-options">

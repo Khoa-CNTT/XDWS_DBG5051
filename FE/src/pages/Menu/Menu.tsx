@@ -23,6 +23,7 @@ type MenuItem = {
   };
   image?: string;
   popular?: boolean;
+  status: boolean;
 };
 
 const Menu = () => {
@@ -35,13 +36,13 @@ const Menu = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
-  
+
   // Search state
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [searchResults, setSearchResults] = useState<MenuItem[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
-  
+
   // Price filter state
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
@@ -54,29 +55,29 @@ const Menu = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-  
+
         // Gọi cả ba API cùng lúc
         const [menuResponse, categoryResponse, popularResponse] = await Promise.all([
           api.get(API_ENDPOINTS.MENU),
           api.get(API_ENDPOINTS.CATEGORIES),
           api.get(API_ENDPOINTS.POPULAR_DISHES)
         ]);
-  
+
         // Lấy dữ liệu từ API (kiểm tra xem có phải mảng không)
         const menuData = menuResponse.data.data;
         const categoryData = categoryResponse.data.data;
         const popularData = popularResponse.data;
-  
+
         if (!Array.isArray(menuData) || !Array.isArray(categoryData)) {
           throw new Error('Dữ liệu API không đúng định dạng');
         }
-  
+
         // Cập nhật danh sách món ăn
         setMenuItems(menuData);
-  
+
         // Cập nhật danh mục (lấy từ API danh mục thay vì từ danh sách món)
         setCategoryOrder(categoryData.map(category => category.name));
-        
+
         // Cập nhật danh sách món ăn phổ biến
         if (Array.isArray(popularData)) {
           setPopularItems(popularData);
@@ -87,7 +88,7 @@ const Menu = () => {
           // Fallback: nếu API trả về không đúng định dạng, sử dụng những món có flag popular = true
           setPopularItems(menuData.filter(item => item.popular).slice(0, 8));
         }
-  
+
         setLoading(false);
       } catch (err) {
         setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
@@ -95,24 +96,24 @@ const Menu = () => {
         console.error('Lỗi khi gọi API:', err);
       }
     };
-  
+
     fetchData();
   }, []);
 
   // Helper functions using the state instead of imported data
   const groupMenuItemsByCategory = () => {
     const grouped: Record<string, MenuItem[]> = {};
-    
+
     menuItems.forEach(item => {
       // Sử dụng item.category.name thay vì item.category
       const categoryName = item.category?.name || 'Khác';
-      
+
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
       grouped[categoryName].push(item);
     });
-    
+
     return grouped;
   };
 
@@ -128,23 +129,23 @@ const Menu = () => {
   // Search function to filter items by keyword
   const searchMenuItems = (keyword: string): MenuItem[] => {
     if (!keyword.trim()) return [];
-    
+
     const normalizedKeyword = keyword.toLowerCase().trim();
-    return menuItems.filter(item => 
+    return menuItems.filter(item =>
       item.name.toLowerCase().includes(normalizedKeyword)
     );
   };
 
   // Filter by price function
   const filterByPrice = (minPrice: number, maxPrice: number): MenuItem[] => {
-    return menuItems.filter(item => 
+    return menuItems.filter(item =>
       item.price >= minPrice && item.price <= maxPrice
     );
   };
-  
+
   // Move this inside the component to ensure it's recalculated on re-renders
   const groupedMenu = groupMenuItemsByCategory();
-  
+
   // Update filteredItems when data is loaded
   useEffect(() => {
     if (!loading && menuItems.length > 0) {
@@ -157,7 +158,7 @@ const Menu = () => {
       }
     }
   }, [loading, menuItems, selectedCategory, popularItems]);
-  
+
   // Handle normal category filtering
   useEffect(() => {
     if (!isSearching && !isPriceFiltering && !loading && menuItems.length > 0) {
@@ -170,35 +171,35 @@ const Menu = () => {
       }
     }
   }, [selectedCategory, isSearching, isPriceFiltering, loading, menuItems.length, popularItems]);
-  
+
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear price filter if active
     if (isPriceFiltering) {
       clearPriceFilter();
     }
-    
+
     if (!searchKeyword.trim()) {
       setIsSearching(false);
       setSearchPerformed(false);
       return;
     }
-    
+
     const results = searchMenuItems(searchKeyword);
     setSearchResults(results);
     setFilteredItems(results);
     setIsSearching(true);
     setSearchPerformed(true);
   };
-  
+
   // Clear search
   const clearSearch = () => {
     setSearchKeyword('');
     setIsSearching(false);
     setSearchPerformed(false);
-    
+
     // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
@@ -208,37 +209,37 @@ const Menu = () => {
       setFilteredItems(groupedMenu[selectedCategory] || []);
     }
   };
-  
+
   // Handle price filter submission
   const handlePriceFilter = (e: React.FormEvent) => {
     e.preventDefault();
     setPriceFilterError('');
-    
+
     // Clear search if active
     if (isSearching) {
       clearSearch();
     }
-    
+
     // Validate inputs
     const minPriceNum = minPrice ? parseInt(minPrice, 10) : 0;
     const maxPriceNum = maxPrice ? parseInt(maxPrice, 10) : Number.MAX_SAFE_INTEGER;
-    
+
     if (minPriceNum < 0 || maxPriceNum < 0) {
       setPriceFilterError('Giá không được là số âm');
       return;
     }
-    
+
     if (minPriceNum > maxPriceNum) {
       setPriceFilterError('Giá tối thiểu không được lớn hơn giá tối đa');
       return;
     }
-    
+
     try {
       const results = filterByPrice(minPriceNum, maxPriceNum);
       setFilteredItems(results);
       setIsPriceFiltering(true);
       setPriceFilterPerformed(true);
-      
+
       if (results.length === 0) {
         setPriceFilterError('Không tìm thấy món ăn nào trong khoảng giá này');
       }
@@ -246,7 +247,7 @@ const Menu = () => {
       setPriceFilterError('Đã xảy ra lỗi khi lọc giá. Vui lòng thử lại sau.');
     }
   };
-  
+
   // Clear price filter
   const clearPriceFilter = () => {
     setMinPrice('');
@@ -254,7 +255,7 @@ const Menu = () => {
     setIsPriceFiltering(false);
     setPriceFilterPerformed(false);
     setPriceFilterError('');
-    
+
     // Restore original category view
     if (selectedCategory === 'popular') {
       setFilteredItems(getPopularItems());
@@ -264,7 +265,7 @@ const Menu = () => {
       setFilteredItems(groupedMenu[selectedCategory] || []);
     }
   };
-  
+
   // Handle category click while filtering
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
@@ -277,32 +278,32 @@ const Menu = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner 
-      loadingText="Đang tải thực đơn..." 
-      showDots={true} 
-      showSkeleton={true} 
-      skeletonCount={2} 
+    return <LoadingSpinner
+      loadingText="Đang tải thực đơn..."
+      showDots={true}
+      showSkeleton={true}
+      skeletonCount={2}
     />;
   }
 
   if (error) {
     return <div className="error">{error}</div>;
   }
-  
+
   return (
     <div className="menu-page">
       <div className="container">
         <div className="menu-header">
           <h1>Thực Đơn</h1>
           <div className="breadcrumb">
-            <Link to="/">Trang chủ</Link> {'>'} <span>Thực đơn</span> {'>'} 
+            <Link to="/">Trang chủ</Link> {'>'} <span>Thực đơn</span> {'>'}
             <span>
-              {isSearching ? 'Kết quả tìm kiếm' : 
-                (selectedCategory === 'popular' ? 'Món phổ biến' : 
-                (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
+              {isSearching ? 'Kết quả tìm kiếm' :
+                (selectedCategory === 'popular' ? 'Món phổ biến' :
+                  (selectedCategory === 'all' ? 'Tất cả món ăn' : selectedCategory))}
             </span>
           </div>
-          
+
           {/* Search Box */}
           <div className="search-container">
             <form onSubmit={handleSearch} className="search-form">
@@ -388,7 +389,7 @@ const Menu = () => {
               ))}
             </ul>
           </div>
-          
+
           <div className="menu-content">
             {/* Search Results Message */}
             {searchPerformed && (
@@ -406,13 +407,13 @@ const Menu = () => {
                 )}
               </div>
             )}
-            
+
             {/* Price Filter Results Message */}
             {priceFilterPerformed && !priceFilterError && (
               <div className="filter-results-header">
                 <h2>
-                  {filteredItems.length > 0 ? 
-                    `Món ăn trong khoảng giá ${minPrice || '0'}đ - ${maxPrice || 'không giới hạn '}0đ (${filteredItems.length})` : 
+                  {filteredItems.length > 0 ?
+                    `Món ăn trong khoảng giá ${minPrice || '0'}đ - ${maxPrice || 'không giới hạn '}0đ (${filteredItems.length})` :
                     'Không tìm thấy món ăn nào trong khoảng giá này'}
                 </h2>
                 {filteredItems.length === 0 && (
@@ -434,7 +435,18 @@ const Menu = () => {
                     <div key={item.id} className="menu-item">
                       {item.image && (
                         <div className="item-image">
-                          <img src={getImageUrl(item.image)} alt={item.name} />
+                          <div className="item-image-wrapper">
+                            <img
+                              src={getImageUrl(item.image)}
+                              alt={item.name}
+                            />
+                            {item?.status === false && (
+                              <div className="sold-out-overlay">
+                                Hết hàng
+                              </div>
+                            )}
+                          </div>
+
                         </div>
                       )}
                       <div className="item-details">

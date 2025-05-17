@@ -12,7 +12,7 @@ export const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND',
-        minimumFractionDigits: 0,   
+        minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(price);
 };
@@ -25,14 +25,16 @@ export const getImageUrl = (image: string | null) => {
 
 const MenuManage = () => {
     const headers = ['Ảnh', 'Tên', 'Giá', 'Trạng Thái', 'Danh Mục', 'Hành Động']
-
+    const statuss = ['Còn', 'Hết']
     const [showAddForm, setShowAddForm] = useState(false)
     const [menus, setMenus] = useState<FoodItem[]>([])
     const [initMenus, setInitMenus] = useState<FoodItem | null>(null)
     const [categories, setCategories] = useState<CategoryType[]>([])
     const [refresh, setRefresh] = useState(false)
 
-    
+    const [status, setStatus] = useState('')
+
+
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -65,7 +67,7 @@ const MenuManage = () => {
 
     }, [refresh]);
 
-    
+
 
     const handleSaveMenu = async (form: FormData) => {
         try {
@@ -151,7 +153,7 @@ const MenuManage = () => {
                                                     const target = e.target as HTMLImageElement;
                                                     target.src = '/vite.svg';
                                                 }}
-                                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                                style={{ width: '70%', height: '80%', objectFit: 'cover' }}
                                             />
                                         </td>
 

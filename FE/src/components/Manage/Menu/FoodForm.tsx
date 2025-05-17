@@ -87,6 +87,7 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
         formData.append("name", name.trim());
         formData.append("price", price.toString());
         formData.append("category_id", String(selectedCategory));
+        formData.append("status", status);
 
         if (file) {
             formData.append("image", file);
@@ -136,13 +137,13 @@ const FoodForm = ({ onsave, food, closeForm }: AddFoodFormProps) => {
                         ))}
                     </select>
                     <label className="form-label">Trạng Thái</label>
-                    {/* <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value as StatusTypeFood)}>
+                    <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value as StatusTypeFood)}>
                         {statuss.map((item) => (
                             <option value={item} key={item}>
                                 {item}
                             </option>
                         ))}
-                    </select> */}
+                    </select>
 
                     <div className="form-group-button">
 
