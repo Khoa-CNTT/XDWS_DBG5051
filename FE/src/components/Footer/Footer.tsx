@@ -15,24 +15,23 @@ const Footer = () => {
           <div className="footer-content">
             <div className="footer-section">
               <h3>CÔNG TY CỔ PHẦN TẬP ĐOÀN SMART ODER</h3>
-              <p>Trụ sở chính: Số 60 Phố Giang Văn Minh, Phường Đội Cấn,<br />Quận Ba Đình, Thành phố Hà Nội, Việt Nam</p>
-              <p>VPGD: Tầng 6, Tòa nhà Toyota, Số 315 Trường Chinh, P.Khương<br />Mai, Q.Thanh Xuân, TP Hà Nội, Việt Nam.</p>
-              <p>Chịu trách nhiệm nội dung: (Bà) Đào Chi Anh</p>
-              <p>GPKD: 0102721191 cấp ngày 09/04/2008</p>
-              <p>T: 043 222 3000 Email: support.hn@ggg.com.vn</p>
+              <p>Trụ sở chính: Số 313 Thanh Thanh, Phường Cici,<br />Thành phố Hà Nội, Việt Nam</p>
+              <p>Chịu trách nhiệm nội dung: (Ông) Lương Thanh</p>
+              <p>GPKD: 01010101010 cấp ngày 01/03/2025</p>
+              <p>T: 033 6560 061 Email: support.hn@ggg.com.vn</p>
             </div>
 
             <div className="footer-section">
               <h3>HỖ TRỢ KHÁCH HÀNG</h3>
               <ul>
-                <li><Link to="/terms">Điều khoản sử dụng</Link></li>
-                <li><Link to="/privacy">Chính sách bảo mật</Link></li>
-                <li><Link to="/membership">Chính sách thành viên</Link></li>
+                <li><Link to="">Điều khoản sử dụng</Link></li>
+                <li><Link to="">Chính sách bảo mật</Link></li>
+                <li><Link to="">Chính sách thành viên</Link></li>
               </ul>
             </div>
 
             <div className="footer-section">
-              <h3>TẢI APP Smart Oder</h3>
+              <h3>Web Smart Oder</h3>
               <div className="app-links">
                 <a href="" target="_blank" rel="noopener noreferrer">
                   <img src="https://ext.same-assets.com/0/148187491.svg" alt="App Store" />
@@ -41,7 +40,7 @@ const Footer = () => {
                   <img src="https://ext.same-assets.com/0/3513627406.svg" alt="Google Play" />
                 </a>
               </div>
-              <p>Smart Oder - Siêu ứng dụng cho tín đồ ẩm thực.<br />Tải App Hôm Nay Chạm Ngay Ưu Đãi.</p>
+              <p>Smart Oder - Siêu ứng dụng cho tín đồ ẩm thực.<br />Đặt Món Hôm Nay Chạm Ngay Ưu Đãi.</p>
 
               <div className="social-links">
                 <a href="" target="_blank" rel="noopener noreferrer">

@@ -3,7 +3,7 @@ import './Menu.scss'
 import { FoodItem } from './foodItem'
 import FoodForm from './FoodForm'
 import axios from 'axios'
-
+import LoadingSpinner from '../../Loading/LoadingSpinner'
 import { getCurrentApi, authHeader, getApiAdmin } from '../../../Api/Login'
 import { CategoryType } from '../Category/Category'
 
@@ -31,7 +31,7 @@ const MenuManage = () => {
     const [initMenus, setInitMenus] = useState<FoodItem | null>(null)
     const [categories, setCategories] = useState<CategoryType[]>([])
     const [refresh, setRefresh] = useState(false)
-
+    const [isLoading, setIsLoading] = useState(true)
     const [status, setStatus] = useState('')
 
 
@@ -53,18 +53,19 @@ const MenuManage = () => {
     }, [refresh]);
 
     useEffect(() => {
-
         const fetchMenus = async () => {
             try {
+                setIsLoading(true);
                 const result = await getCurrentApi('/list-menu', 'get');
                 setMenus(result.data);
                 console.log('Lấy data thành công', result.data.map((item: FoodItem) => item));
             } catch (error) {
                 console.log("Lỗi khi gọi API:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchMenus();
-
     }, [refresh]);
 
 
@@ -139,44 +140,65 @@ const MenuManage = () => {
                         </thead>
 
                         <tbody className='food-table-body' >
-                            {menus?.filter(Boolean).map((food) => {
-                                console.log('Food item:', food);
-                                return (
-                                    <tr key={food?.id} className="food-row">
-                                        <td className="food-image-cell">
-                                            <img
-                                                src={getImageUrl(food?.image)}
-                                                alt={food?.name || 'Food image'}
-                                                className="food-image"
-                                                onError={(e) => {
-                                                    console.log('Image load error:', e);
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.src = '/vite.svg';
-                                                }}
-                                                style={{ width: '70%', height: '80%', objectFit: 'cover' }}
-                                            />
-                                        </td>
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                        <LoadingSpinner 
+                                            loadingText="Đang tải danh sách món ăn..." 
+                                            showDots={true} 
+                                            showSkeleton={false}
+                                            className="embedded"
+                                        />
+                                    </td>
+                                </tr>
+                            ) : menus?.filter(Boolean).length > 0 ? (
+                                menus?.filter(Boolean).map((food) => {
+                                    console.log('Food item:', food);
+                                    return (
+                                        <tr key={food?.id} className="food-row">
+                                            <td className="food-image-cell">
+                                                <img
+                                                    src={getImageUrl(food?.image)}
+                                                    alt={food?.name || 'Food image'}
+                                                    className="food-image"
+                                                    onError={(e) => {
+                                                        console.log('Image load error:', e);
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = '/vite.svg';
+                                                    }}
+                                                    style={{ width: '70%', height: '80%', objectFit: 'cover' }}
+                                                />
+                                            </td>
 
-                                        <td className="food-name">{food?.name}</td>
-                                        <td className="food-price">{formatPrice(food?.price)}</td>
-                                        <td className="food-status">
-                                            {'Còn'}
-                                        </td>
-                                        <td className="food-type">
-                                            {categories.find((category) => category.id === food?.category_id)?.name}
-                                        </td>
+                                            <td className="food-name">{food?.name}</td>
+                                            <td className="food-price">{formatPrice(food?.price)}</td>
+                                            <td className="food-status">
+                                                {'Còn'}
+                                            </td>
+                                            <td className="food-type">
+                                                {categories.find((category) => category.id === food?.category_id)?.name}
+                                            </td>
 
-                                        <td className="food-actions">
-                                            <button className="btn-edit"
-                                                onClick={() => handleEdit(food)}
-                                            > Sửa</button>
-                                            <button className="btn-delete"
-                                                onClick={() => handleDelete(food)}
-                                            >Xóa</button>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
+                                            <td className="food-actions">
+                                                <button className="btn-edit"
+                                                    onClick={() => handleEdit(food)}
+                                                > Sửa</button>
+                                                <button className="btn-delete"
+                                                    onClick={() => handleDelete(food)}
+                                                >Xóa</button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                        <div className="no-menu-message">
+                                            <p>Không tìm thấy món ăn nào</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

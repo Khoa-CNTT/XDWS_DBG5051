@@ -88,11 +88,11 @@
 
             li {
                 a {
-                    font-size: 16px;
-                    font-weight: 500;
+                    font-size: 20px;
+                    font-weight: 600;
                     color: var(--text-color);
-                    padding: 10px 0;
-                    transition: all 0.3s ease;
+                    padding: 10px 15px;
+                    transition: color 0.3s;
                     position: relative;
 
                     &:hover,
@@ -100,20 +100,24 @@
                         color: var(--primary-color);
                     }
 
-                    &::after {
+                    &:after {
                         content: "";
                         position: absolute;
+                        width: 100%;
+                        height: 3px;
+                        background-color: var(--primary-color);
                         bottom: 0;
                         left: 0;
-                        width: 0;
-                        height: 2px;
-                        background-color: var(--primary-color);
-                        transition: width 0.3s ease;
+                        transform: scaleX(0);
+                        transition: transform 0.3s ease;
                     }
 
-                    &:hover::after,
-                    &.active::after {
-                        width: 100%;
+                    &.active:after {
+                        transform: scaleX(1);
+                    }
+
+                    strong {
+                        font-weight: 700;
                     }
                 }
             }

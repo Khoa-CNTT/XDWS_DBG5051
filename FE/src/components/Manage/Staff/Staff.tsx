@@ -4,7 +4,7 @@ import {
 } from './StaffList'
 import FormStaff from './FormStaff'
 import './Staff.scss'
-
+import LoadingSpinner from '../../Loading/LoadingSpinner'
 import { authHeader } from '../../../Api/Login'
 import axios from 'axios'
 
@@ -13,19 +13,19 @@ const Staff = () => {
 
     const headers = ['Tên Nhân Viên', 'Email', 'Số điện thoại', 'Hành Động']
     const [showForm, setShowForm] = useState(false)
-
     const [staffs, setStaffs] = useState<StaffList[]>([])
     const [initStaffs, setInitStaffs] = useState<StaffList | null>(null)
     const [refresh, setRefresh] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         const fetchStaff = async () => {
             try {
+                setIsLoading(true);
                 const res = await axios.get('http://localhost:8000/api/admin/list-user', authHeader());
                 if (Array.isArray(res.data.data)) {
                     const staffOnly = res.data.data.filter((user: any) => user.role === 'staff');
                     setStaffs(staffOnly);
-
                 } else {
                     console.error('Dữ liệu trả về không phải là một mảng:', res.data);
                     setStaffs([]); // Đặt giá trị mặc định là mảng rỗng
@@ -33,6 +33,8 @@ const Staff = () => {
             } catch (error: any) {
                 console.error('Lỗi khi lấy danh sách nhân viên:', error.response);
                 setStaffs([]); // Đặt giá trị mặc định là mảng rỗng khi có lỗi
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -113,39 +115,46 @@ const Staff = () => {
                         </thead>
 
                         <tbody className='staff-table-body' >
-                            {staffs.map((staff) => (
-                                <tr key={staff.id} className="staff-row">
-
-                                    <td className="staff-name">{staff.name}</td>
-
-                                    <td className="staff-mail">
-                                        {staff.email}
-                                    </td>
-                                    <td className="staff-phone">
-                                        {staff.phone}
-                                    </td>
-
-
-
-                                    <td className="staff-actions">
-                                        <button className="btn-edit"
-                                            onClick={() => handleEdit(staff)}
-
-                                        > Sửa</button>
-                                        <button className="btn-delete"
-                                            onClick={() => handleDelete(staff)}
-                                        >Xóa</button>
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                        <LoadingSpinner 
+                                            loadingText="Đang tải danh sách nhân viên..." 
+                                            showDots={true} 
+                                            showSkeleton={false}
+                                            className="embedded"
+                                        />
                                     </td>
                                 </tr>
-                            ))}
+                            ) : staffs.length > 0 ? (
+                                staffs.map((staff) => (
+                                    <tr key={staff.id} className="staff-row">
+                                        <td className="staff-name">{staff.name}</td>
+                                        <td className="staff-mail">{staff.email}</td>
+                                        <td className="staff-phone">{staff.phone}</td>
+                                        <td className="staff-actions">
+                                            <button className="btn-edit"
+                                                onClick={() => handleEdit(staff)}
+                                            > Sửa</button>
+                                            <button className="btn-delete"
+                                                onClick={() => handleDelete(staff)}
+                                            >Xóa</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                        <div className="no-staff-message">
+                                            <p>Không tìm thấy nhân viên nào</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
-
-
                     </table>
-                </div >
-
+                </div>
             </div>
-
 
             {showForm && (
                 <div className="overlay">

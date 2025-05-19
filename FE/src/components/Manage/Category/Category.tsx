@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { api } from "../../../Api/AxiosIntance"
 import CateForm from "./CateForm"
+import LoadingSpinner from "../../Loading/LoadingSpinner"
 
 export type CategoryType = {
     id: number;
@@ -13,15 +14,19 @@ const Category = () => {
     const [showAddForm, setShowAddForm] = useState(false)
     const [initCate, setInitCate] = useState<CategoryType | null>(null)
     const [refresh, setRefresh] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
     const headers = ['Tên Danh Mục', 'Hành Động']
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                setIsLoading(true);
                 const response = await api.get('/cate');
                 setCategory(response.data.data.map((item: CategoryType) => item));
             } catch (error) {
                 console.error('Error fetching data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -91,26 +96,46 @@ const Category = () => {
                     </thead>
 
                     <tbody className='food-table-body' >
-                        {category?.filter(Boolean).map((cate) => {
-                            console.log('Danh muc:', cate);
-                            return (
-                                <tr key={cate?.id} className="food-row">
-                                    <td className="food-name">{cate?.name}</td>
-                                    <td className="food-actions">
-                                        <button className="btn-edit"
-                                            onClick={() => {
-                                                setInitCate(cate);
-                                                setShowAddForm(true);
-                                            }
-                                            }
-                                        > Sửa</button>
-                                        <button className="btn-delete"
-                                            onClick={() => handleDelete(cate)}
-                                        >Xóa</button>
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                        {isLoading ? (
+                            <tr>
+                                <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <LoadingSpinner 
+                                        loadingText="Đang tải danh sách danh mục..." 
+                                        showDots={true} 
+                                        showSkeleton={false}
+                                        className="embedded"
+                                    />
+                                </td>
+                            </tr>
+                        ) : category.length > 0 ? (
+                            category?.filter(Boolean).map((cate) => {
+                                return (
+                                    <tr key={cate?.id} className="food-row">
+                                        <td className="food-name">{cate?.name}</td>
+                                        <td className="food-actions">
+                                            <button className="btn-edit"
+                                                onClick={() => {
+                                                    setInitCate(cate);
+                                                    setShowAddForm(true);
+                                                }
+                                                }
+                                            > Sửa</button>
+                                            <button className="btn-delete"
+                                                onClick={() => handleDelete(cate)}
+                                            >Xóa</button>
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        ) : (
+                            <tr>
+                                <td colSpan={headers.length} style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <div className="no-categories-message">
+                                        <p>Không tìm thấy danh mục nào</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

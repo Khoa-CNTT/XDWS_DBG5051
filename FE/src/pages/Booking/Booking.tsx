@@ -158,7 +158,7 @@ const Booking = () => {
         <div className="container">
           <h1>Đặt Bàn dễ dàng tại nhà hàng SmartOrder</h1>
           <p>Đặt bàn trực tuyến, đảm bảo chất lượng dịch vụ, món ngon và địa điểm ưng ý cho mọi thực khách.
-            <p>Liên hệ: 0336560061</p>
+            <p>Liên hệ: 033 6560 061</p>
           </p>
         </div>
       </div>

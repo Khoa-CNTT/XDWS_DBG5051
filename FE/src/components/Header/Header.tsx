@@ -41,17 +41,17 @@ const Header = () => {
             <ul>
               <li>
                 <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-                  Trang chủ
+                  <strong>Trang chủ</strong>
                 </Link>
               </li>
               <li>
                 <Link to="/thuc-don" className={location.pathname === '/thuc-don' ? 'active' : ''}>
-                  Thực đơn
+                  <strong>Thực đơn</strong>
                 </Link>
               </li>
               <li>
                 <Link to="/dat-ban" className={location.pathname === '/dat-ban' ? 'active' : ''}>
-                  Đặt bàn
+                  <strong>Đặt bàn</strong>
                 </Link>
               </li>
             </ul>

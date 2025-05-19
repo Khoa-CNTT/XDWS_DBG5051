@@ -78,10 +78,10 @@ const OrderManagement = () => {
 
     fetchOrders();
     
-    // Refresh orders every 30 seconds
-    const intervalId = setInterval(fetchOrders, 30000);
+    // // Refresh orders every 30 seconds
+    // const intervalId = setInterval(fetchOrders, 30000);
     
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, []);
 
   // Apply filters to orders
@@ -98,7 +98,7 @@ const OrderManagement = () => {
       const query = filter.searchQuery.toLowerCase();
       result = result.filter(order => 
         order.id.toString().includes(query) || 
-        order.table.name.toLowerCase().includes(query)
+        (order.table?.table_number?.toString().toLowerCase() || '').includes(query)
       );
     }
     
@@ -121,7 +121,7 @@ const OrderManagement = () => {
       // Lấy thông tin chi tiết đơn hàng từ API để đảm bảo dữ liệu đầy đủ
       const detailedOrder = await orderService.getOrderById(order.id);
       console.log('Detailed order data:', detailedOrder); 
-      console.log('Table info:', detailedOrder?.table); // Thêm log để kiểm tra thông tin bàn
+      console.log('Table info:', detailedOrder?.table);
       
       // Đảm bảo dữ liệu items có đầy đủ thông tin
       if (detailedOrder && Array.isArray(detailedOrder.items)) {
@@ -183,6 +183,15 @@ const OrderManagement = () => {
       'cancelled': 'cancelled'
     };
     return statusClassMap[status];
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { 
+      style: 'currency', 
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   return (
@@ -252,7 +261,7 @@ const OrderManagement = () => {
                 <div className="order-info">
                   <p><strong>Bàn:</strong> {order.table?.table_number || 'Không xác định'}</p>
                   <p><strong>Thời gian:</strong> {formatDate(order.created_at)}</p>
-                  <p><strong>Tổng tiền:</strong> {order.total_price.toLocaleString('vi-VN')}đ</p>
+                  <p><strong>Tổng tiền:</strong> {formatCurrency(order.total_price)}</p>
                   <p><strong>Số món:</strong> {order.items.length}</p>
                 </div>
               </div>
@@ -338,7 +347,6 @@ const OrderManagement = () => {
                     </thead>
                     <tbody>
                       {selectedOrder.items && selectedOrder.items.map((item) => {
-                        // Kiểm tra item và các thuộc tính của nó
                         const menuName = item?.menu?.name || 'Không có tên';
                         const quantity = item?.quantity || 0;
                         const price = item?.price || (item?.menu?.price || 0);
@@ -348,8 +356,8 @@ const OrderManagement = () => {
                           <tr key={item?.id || Math.random()}>
                             <td>{menuName}</td>
                             <td>{quantity}</td>
-                            <td>{price.toLocaleString('vi-VN')}đ</td>
-                            <td>{totalPrice.toLocaleString('vi-VN')}đ</td>
+                            <td>{formatCurrency(price)}</td>
+                            <td>{formatCurrency(totalPrice)}</td>
                           </tr>
                         );
                       })}
@@ -357,7 +365,7 @@ const OrderManagement = () => {
                     <tfoot>
                       <tr>
                         <td colSpan={3}><strong>Tổng cộng</strong></td>
-                        <td><strong>{selectedOrder.total_price.toLocaleString('vi-VN')}đ</strong></td>
+                        <td><strong>{formatCurrency(selectedOrder.total_price)}</strong></td>
                       </tr>
                     </tfoot>
                   </table>
@@ -365,7 +373,9 @@ const OrderManagement = () => {
               </div>
             </ErrorBoundary>
             <div className="modal-footer">
-              <button className="close-btn" onClick={() => setShowModal(false)}>Đóng</button>
+              <button className="btn close-btn" onClick={() => setShowModal(false)}>
+                Đóng
+              </button>
             </div>
           </div>
         </div>

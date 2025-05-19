@@ -219,6 +219,7 @@
                 }
             }
 
+            // Kiểm tra và sửa class cho phương thức thanh toán
             .payment-methods {
                 margin-bottom: var(--spacing-lg);
 
@@ -252,11 +253,75 @@
                     }
                 }
 
-                .cash-payment,
-                .bank-payment-button {
+                // Sửa class cho thanh toán tiền mặt
+                .cash-payment {
                     padding: var(--spacing-lg);
                     background-color: var(--light-gray);
                     border-radius: var(--border-radius-md);
+                }
+
+                // Sửa lại class cho thanh toán VNPay
+                .vnpay-payment {
+                    padding: var(--spacing-lg);
+                    background-color: var(--light-gray);
+                    border-radius: var(--border-radius-md);
+                    margin-top: var(--spacing-md);
+
+                    p {
+                        margin-bottom: var(--spacing-md);
+                        font-size: 16px;
+                    }
+
+                    .pay-btn {
+                        padding: var(--spacing-md) var(--spacing-xl);
+                        border-radius: var(--border-radius-md);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: var(--spacing-sm);
+                        font-weight: 500;
+                        background-color: var(--primary-color);
+                        color: var(--white);
+                        margin-top: var(--spacing-md);
+                        width: 100%;
+                        transition: background-color 0.3s;
+                        border: none;
+                        cursor: pointer;
+
+                        &:hover:not(:disabled) {
+                            background-color: var(--secondary-color);
+                        }
+
+                        &:disabled {
+                            opacity: 0.5;
+                            cursor: not-allowed;
+                        }
+                    }
+                }
+
+                // Thêm style cho nút thanh toán
+                .pay-btn {
+                    padding: var(--spacing-md) var(--spacing-xl);
+                    border-radius: var(--border-radius-md);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: var(--spacing-sm);
+                    font-weight: 500;
+                    background-color: var(--primary-color);
+                    color: var(--white);
+                    margin-top: var(--spacing-md);
+                    width: 100%;
+                    transition: background-color 0.3s;
+
+                    &:hover:not(:disabled) {
+                        background-color: var(--secondary-color);
+                    }
+
+                    &:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
                 }
 
                 .form-group {
@@ -292,6 +357,7 @@
                 }
             }
 
+            // Các nút hành động
             .confirm-btn,
             .print-btn,
             .back-btn,
@@ -308,42 +374,6 @@
                 &:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
-                }
-            }
-
-            .confirm-btn {
-                background-color: var(--primary-color);
-                color: var(--white);
-
-                &:hover:not(:disabled) {
-                    background-color: var(--secondary-color);
-                }
-            }
-
-            .print-btn {
-                background-color: #3498db;
-                color: var(--white);
-                margin-bottom: var(--spacing-md);
-
-                &:hover {
-                    background-color: #2980b9;
-                }
-            }
-
-            .back-btn {
-                background-color: var(--light-gray);
-
-                &:hover {
-                    background-color: var(--gray);
-                }
-            }
-
-            .cancel-btn {
-                background-color: #e74c3c;
-                color: var(--white);
-
-                &:hover {
-                    background-color: #c0392b;
                 }
             }
 
@@ -417,6 +447,95 @@
                     padding: var(--spacing-md);
                     border-radius: var(--border-radius-sm);
                     display: inline-block;
+                }
+            }
+        }
+    }
+}
+
+// Thêm style cho phần hiển thị QR code VNPay
+.payment-management {
+    .payment-management-content {
+        .payment-details {
+            // Các style khác giữ nguyên...
+
+            // Thêm style cho phần hiển thị QR code VNPay
+            .vnpay-qr-payment {
+                text-align: center;
+                padding: var(--spacing-lg);
+                background-color: var(--white);
+                border-radius: var(--border-radius-md);
+
+                h3 {
+                    margin-bottom: var(--spacing-md);
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+
+                p {
+                    margin-bottom: var(--spacing-md);
+                    font-size: 16px;
+                }
+
+                .qr-code {
+                    margin: var(--spacing-xl) auto;
+                    max-width: 250px;
+
+                    img {
+                        width: 100%;
+                        height: auto;
+                        border: 1px solid var(--gray);
+                        border-radius: var(--border-radius-sm);
+                    }
+                }
+
+                a {
+                    color: var(--primary-color);
+                    text-decoration: underline;
+                    font-weight: 500;
+
+                    &:hover {
+                        color: var(--secondary-color);
+                    }
+                }
+
+                .payment-actions {
+                    display: flex;
+                    gap: var(--spacing-md);
+                    margin-top: var(--spacing-lg);
+
+                    button {
+                        flex: 1;
+                        padding: var(--spacing-md);
+                        border-radius: var(--border-radius-md);
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: var(--spacing-sm);
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    }
+
+                    .confirm-btn {
+                        background-color: #2ecc71;
+                        color: var(--white);
+                        border: none;
+
+                        &:hover {
+                            background-color: #27ae60;
+                        }
+                    }
+
+                    .cancel-btn {
+                        background-color: #e74c3c;
+                        color: var(--white);
+                        border: none;
+
+                        &:hover {
+                            background-color: #c0392b;
+                        }
+                    }
                 }
             }
         }

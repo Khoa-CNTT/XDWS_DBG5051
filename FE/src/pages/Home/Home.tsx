@@ -8,18 +8,18 @@ const Home = () => {
       <section className="hero-section">
         <div className="hero-slider">
           <div className="hero-slide">
-            <img src="https://ext.same-assets.com/868040770/2558047103.png" alt="Smart Order Banner" />
+            <img src="./src/assets/banner.png" alt="Smart Order Banner" />
           </div>
         </div>
       </section>
 
       <section className="intro-section">
         <div className="container">
-          <h2 className="section-title">Quán Thịt Nướng Hàn Quốc</h2>
           <div className="intro-content">
             <div className="intro-text">
+              <h2 className="section-title">Quán Thịt Nướng Hàn Quốc</h2>
               <p>
-               Smart Order – Quán thịt nướng Hàn Quốc Ngon Số 1 sẽ đưa bạn
+                Smart Order – Quán thịt nướng Hàn Quốc Ngon Số 1 sẽ đưa bạn
                 ghé đến những quán thịt nướng tại thành phố Seoul đã tạo nên
                 danh tiếng cho nền ẩm thực xứ kim chi. Nếu đã một lần thưởng
                 thức thịt nướng tại Smart Order, bạn sẽ không thể quên được
@@ -80,7 +80,7 @@ const Home = () => {
               </div>
             </div>
             <div className="qr-ordering-image">
-              <img src="https://ext.same-assets.com/166846685/3726704444.jpeg" alt="QR Ordering" />
+              <img src="./src/assets/img_qr.jpg" alt="QR Ordering" />
               <div className="qr-ordering-cta">
                 <p>Trải nghiệm đặt món trực tiếp tại nhà hàng hoặc</p>
                 <Link to="/dat-ban" className="book-table-btn">Đặt bàn ngay</Link>
@@ -96,20 +96,20 @@ const Home = () => {
             <div className="brand-category">
               <h3>HOTPOT</h3>
               <div className="brand-logos">
-                <a href="https://ashima.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/3336826416.svg" alt="ashima" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/ashima.svg" alt="ashima" />
                 </a>
-                <a href="https://kichi.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/1180972125.svg" alt="kichi" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/kichi.svg" alt="kichi" />
                 </a>
-                <a href="https://manwah.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/65013682.svg" alt="manwah" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/wah.svg" alt="manwah" />
                 </a>
-                <a href="https://hutong.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/1704423291.svg" alt="hutong" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/hutong.svg" alt="hutong" />
                 </a>
-                <a href="https://ktop.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/1055700021.svg" alt="ktop" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/ktop.svg" alt="ktop" />
                 </a>
               </div>
             </div>
@@ -117,17 +117,17 @@ const Home = () => {
             <div className="brand-category">
               <h3>BBQ</h3>
               <div className="brand-logos">
-                <a href="https://sumoyakiniku.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/2046409577.svg" alt="sumo" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/sumo.svg" alt="sumo" />
                 </a>
-                <a href="https://gogi.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/1285050380.svg" alt="gogi house" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/gogi.svg" alt="gogi house" />
                 </a>
-                <a href="https://gogisteak.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/2136061176.svg" alt="gogi steak" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/steak.svg" alt="gogi steak" />
                 </a>
-                <a href="https://kpub.com.vn/" target="_blank" rel="noopener noreferrer">
-                  <img src="https://ext.same-assets.com/166846685/210945348.jpeg" alt="kpub" />
+                <a href="" target="_blank" rel="noopener noreferrer">
+                  <img src="./src/assets/img_logo/kpub.jpeg" alt="kpub" />
                 </a>
               </div>
             </div>

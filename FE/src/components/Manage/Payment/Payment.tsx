@@ -4,7 +4,6 @@ import { paymentService } from '../../../services/paymentService';
 import { orderService, Order } from '../../../services/orderService';
 import LoadingSpinner from '../../Loading/LoadingSpinner';
 
-// Mở rộng interface Order để thêm các thuộc tính cần thiết cho thanh toán
 interface OrderWithPayment extends Order {
   payment_status?: 'unpaid' | 'paid';
   payment_method?: 'cash' | 'VNPay';
@@ -62,10 +61,10 @@ const PaymentManagement = () => {
 
     fetchOrders();
     
-    // Cập nhật danh sách đơn hàng mỗi 30 giây
-    const intervalId = setInterval(fetchOrders, 30000);
+    // // Cập nhật danh sách đơn hàng mỗi 30 giây
+    // const intervalId = setInterval(fetchOrders, 30000);
     
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, []);
 
   const resetPaymentState = () => {
@@ -216,10 +215,10 @@ const PaymentManagement = () => {
   const filteredOrders = orders.filter(order => 
     viewMode === 'pending' 
       ? (order.payment_status === 'unpaid' && 
-         (order.table.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+         ((order.table?.table_number?.toLowerCase().includes(searchTerm.toLowerCase())) || 
           order.id.toString().includes(searchTerm)))
       : (order.payment_status === 'paid' && 
-         (order.table.name.toLowerCase().includes(historySearchTerm.toLowerCase()) || 
+         ((order.table?.table_number?.toLowerCase().includes(historySearchTerm.toLowerCase())) || 
           order.id.toString().includes(historySearchTerm)))
   );
 
@@ -291,7 +290,7 @@ const PaymentManagement = () => {
                   {filteredOrders.map(order => (
                     <tr key={order.id} className={selectedOrder?.id === order.id ? 'selected' : ''}>
                       <td>#{order.id}</td>
-                      <td>{order.table.name}</td>
+                      <td>{order.table?.table_number || 'N/A'}</td>
                       <td>{formatCurrency(order.total_price)}</td>
                       <td>{formatDateTime(order.created_at)}</td>
                       {viewMode === 'history' && (
@@ -324,9 +323,14 @@ const PaymentManagement = () => {
                     <FaCheck size={40} />
                   </div>
                   <h3>{viewMode === 'history' ? 'Chi tiết thanh toán' : 'Thanh toán thành công!'}</h3>
-                  <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.table.name}</p>
-                  <p>Phương thức: {selectedOrder.payment_method === 'cash' ? 'Tiền mặt' : 'VNPay'}</p>
-                  {selectedOrder.payment_method === 'cash' && (
+                  <p>Đơn hàng #{selectedOrder.id} - Bàn {selectedOrder.table?.table_number || 'N/A'}</p>
+                  
+                  {/* Sử dụng payment_method từ selectedOrder nếu có, nếu không thì dùng paymentMethod từ state */}
+                  <p>Phương thức: {selectedOrder.payment_method === 'VNPay' ? 'VNPay' : 
+                                   (paymentMethod === 'VNPay' && paymentCompleted) ? 'VNPay' : 'Tiền mặt'}</p>
+                  
+                  {(selectedOrder.payment_method === 'cash' || 
+                    (paymentMethod === 'cash' && paymentCompleted)) && (
                     <>
                       <p>Số tiền nhận: {formatCurrency(selectedOrder.amount_received || amountReceived)}</p>
                       <p>Tiền thừa: {formatCurrency(selectedOrder.amount_returned || amountReturned)}</p>
@@ -346,14 +350,22 @@ const PaymentManagement = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedOrder.items.map(item => (
-                          <tr key={item.id}>
-                            <td>{item.menu.name}</td>
-                            <td>{item.quantity}</td>
-                            <td>{formatCurrency(item.price)}</td>
-                            <td>{formatCurrency(item.price * item.quantity)}</td>
-                          </tr>
-                        ))}
+                        {selectedOrder.items.map(item => {
+                          // Kiểm tra item và các thuộc tính của nó
+                          const menuName = item?.menu?.name || 'Không có tên';
+                          const quantity = item?.quantity || 0;
+                          const price = item?.price || (item?.menu?.price || 0);
+                          const totalPrice = price * quantity;
+                          
+                          return (
+                            <tr key={item?.id || Math.random()}>
+                              <td>{menuName}</td>
+                              <td>{quantity}</td>
+                              <td>{formatCurrency(price)}</td>
+                              <td>{formatCurrency(totalPrice)}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr>
@@ -371,9 +383,10 @@ const PaymentManagement = () => {
                   )}
                 </div>
               ) : showQRCode ? (
-                <div className="vnpay-payment">
+                <div className="vnpay-qr-payment">
                   <h3>Thanh toán VNPay</h3>
                   <p>Quét mã QR để thanh toán:</p>
+                  
                   <div className="qr-code">
                     {/* Hiển thị QR code từ vnpayUrl */}
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(vnpayUrl)}`} alt="QR Code" />
@@ -393,8 +406,9 @@ const PaymentManagement = () => {
               ) : (
                 <div className="payment-form">
                   <h3>Thanh toán đơn hàng #{selectedOrder.id}</h3>
-                  <p>Bàn: {selectedOrder.table.name}</p>
+                  <p>Bàn: {selectedOrder.table?.table_number || 'N/A'}</p>
                   <p>Tổng tiền: <strong>{formatCurrency(selectedOrder.total_price)}</strong></p>
+                  
                   <div className="order-items">
                     <h4>Danh sách món</h4>
                     <table>
@@ -407,14 +421,22 @@ const PaymentManagement = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedOrder.items.map(item => (
-                          <tr key={item.id}>
-                            <td>{item.menu.name}</td>
-                            <td>{item.quantity}</td>
-                            <td>{formatCurrency(item.price)}</td>
-                            <td>{formatCurrency(item.price * item.quantity)}</td>
-                          </tr>
-                        ))}
+                        {selectedOrder.items.map(item => {
+                          // Kiểm tra item và các thuộc tính của nó
+                          const menuName = item?.menu?.name || 'Không có tên';
+                          const quantity = item?.quantity || 0;
+                          const price = item?.price || (item?.menu?.price || 0);
+                          const totalPrice = price * quantity;
+                          
+                          return (
+                            <tr key={item?.id || Math.random()}>
+                              <td>{menuName}</td>
+                              <td>{quantity}</td>
+                              <td>{formatCurrency(price)}</td>
+                              <td>{formatCurrency(totalPrice)}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr>
@@ -427,68 +449,68 @@ const PaymentManagement = () => {
 
                   <div className="payment-methods">
                     <h4>Phương thức thanh toán</h4>
-                    <div className="method-options">
-                      <button 
+                    <div className="method-selector">
+                      <button
                         className={`method-btn ${paymentMethod === 'cash' ? 'active' : ''}`}
                         onClick={() => setPaymentMethod('cash')}
                       >
                         <FaMoneyBillWave /> Tiền mặt
                       </button>
-                      <button 
+                      <button
                         className={`method-btn ${paymentMethod === 'VNPay' ? 'active' : ''}`}
                         onClick={() => setPaymentMethod('VNPay')}
                       >
                         <FaUniversity /> VNPay
                       </button>
                     </div>
+                    
+                    {paymentMethod === 'cash' && (
+                      <div className="cash-payment">
+                        <div className="form-group">
+                          <label>Số tiền nhận:</label>
+                          <input 
+                            type="number" 
+                            value={amountReceived || ''} 
+                            onChange={(e) => handleAmountReceivedChange(Number(e.target.value))}
+                            min={selectedOrder.total_price}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Tiền thừa:</label>
+                          <input 
+                            type="text" 
+                            value={formatCurrency(amountReturned)} 
+                            readOnly 
+                          />
+                        </div>
+                        
+                        {error && <div className="error-message">{error}</div>}
+                        
+                        <button 
+                          className="pay-btn"
+                          onClick={handleCashPayment}
+                          disabled={amountReceived < selectedOrder.total_price}
+                        >
+                          Thanh toán
+                        </button>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'VNPay' && (
+                      <div className="vnpay-payment">
+                        <p>Bạn sẽ được chuyển đến cổng thanh toán VNPay.</p>
+                        
+                        {error && <div className="error-message">{error}</div>}
+                        
+                        <button 
+                          className="pay-btn"
+                          onClick={handleVNPayPayment}
+                        >
+                          Thanh toán qua VNPay
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  
-                  {paymentMethod === 'cash' && (
-                    <div className="cash-payment">
-                      <div className="form-group">
-                        <label>Số tiền nhận:</label>
-                        <input 
-                          type="number" 
-                          value={amountReceived || ''} 
-                          onChange={(e) => handleAmountReceivedChange(Number(e.target.value))}
-                          min={selectedOrder.total_price}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Tiền thừa:</label>
-                        <input 
-                          type="text" 
-                          value={formatCurrency(amountReturned)} 
-                          readOnly 
-                        />
-                      </div>
-                      
-                      {error && <div className="error-message">{error}</div>}
-                      
-                      <button 
-                        className="pay-btn"
-                        onClick={handleCashPayment}
-                        disabled={amountReceived < selectedOrder.total_price}
-                      >
-                        Thanh toán
-                      </button>
-                    </div>
-                  )}
-                  
-                  {paymentMethod === 'VNPay' && (
-                    <div className="vnpay-payment">
-                      <p>Bạn sẽ được chuyển đến cổng thanh toán VNPay.</p>
-                      
-                      {error && <div className="error-message">{error}</div>}
-                      
-                      <button 
-                        className="pay-btn"
-                        onClick={handleVNPayPayment}
-                      >
-                        Thanh toán qua VNPay
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
             </>

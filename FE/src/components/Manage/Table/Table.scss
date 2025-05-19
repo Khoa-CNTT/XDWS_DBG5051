@@ -274,11 +274,11 @@
                         transition: background-color 0.2s ease;
 
                         &.edit-btn {
-                            background-color: var(--secondary-color);
+                            background-color: #16a085;
                             color: white;
 
                             &:hover {
-                                background-color: darken(#96603d, 10%);
+                                background-color: darken(#16a085, 10%);
                             }
                         }
 
@@ -613,8 +613,7 @@
                     }
                 }
             }
-
-            .reservation-details {
+            .detail-content {
                 overflow-y: auto;
                 padding: var(--spacing-lg);
 
@@ -689,6 +688,15 @@
                             padding: var(--spacing-sm);
                             border-radius: var(--border-radius-sm);
                         }
+
+                        .note-content {
+                            white-space: pre-line;
+                        }
+
+                        .no-note {
+                            color: var(--light-text);
+                            font-style: italic;
+                        }
                     }
 
                     .table-selection {
@@ -712,6 +720,12 @@
                                 outline: none;
                                 border-color: var(--primary-color);
                             }
+                        }
+
+                        .no-tables-message {
+                            color: var(--red);
+                            font-size: 0.875rem;
+                            margin-top: var(--spacing-xs);
                         }
                     }
 
@@ -759,11 +773,24 @@
                         }
                     }
                 }
+
+                .status-message {
+                    padding: var(--spacing-md);
+                    border-radius: var(--border-radius-md);
+                    margin-top: var(--spacing-md);
+                    text-align: center;
+                    background-color: var(--light-gray);
+
+                    p {
+                        margin: var(--spacing-sm) 0;
+                        font-size: 1rem;
+                        font-weight: 500;
+                    }
+                }
             }
         }
     }
 }
-
 // Animations
 @keyframes fadeIn {
     from {

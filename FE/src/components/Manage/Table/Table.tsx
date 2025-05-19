@@ -845,7 +845,7 @@ const TableManagement = () => {
                     )}
                   </div>
                   
-                  <div className="confirmation-actions">
+                  <div className="action-buttons">
                     <button
                       className="confirm-btn"
                       onClick={handleConfirmReservation}
@@ -855,7 +855,7 @@ const TableManagement = () => {
                     </button>
                     
                     <button
-                      className="cancel-btn"
+                      className="reject-btn"
                       onClick={handleCancelReservation}
                     >
                       <FaTimes /> Hủy đặt bàn

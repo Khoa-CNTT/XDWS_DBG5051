@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import QrCodeGenerator from '../../components/QrCodeGenerator/QrCodeGenerator';
 import './Admin.scss';
 import { FaHome, FaQrcode, FaClipboardList, FaBars, FaChartBar, FaSignOutAlt, FaList, FaMoneyBillWave, } from 'react-icons/fa';
 import Menu from '../../components/Manage/Menu/Menu.tsx';
@@ -15,10 +14,11 @@ import FeedbackForm from '../../components/FeedBack/FeedBackForm.tsx';
 
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState('qrcode');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+
   // Thêm xử lý responsive
   useEffect(() => {
     const handleResize = () => {
@@ -47,9 +47,14 @@ const Admin = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    navigate('/login');
+    const confirmLogout = window.confirm('Bạn có chắc chắn muốn đăng xuất?');
+    
+    if (confirmLogout) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('name');
+      navigate('/login');
+    }
   };
 
 
@@ -78,20 +83,6 @@ const Admin = () => {
               :
               ''
           }
-
-          {
-            role === 'admin' ?
-              <div
-                className={`sidebar-menu-item ${activeTab === 'qrcode' ? 'active' : ''}`}
-                onClick={() => setActiveTab('qrcode')}
-              >
-                <FaQrcode size={20} />
-                {!isSidebarCollapsed && <span>Mã QR đặt món</span>}
-              </div>
-
-              :
-              ''
-          }
           {
             role === 'admin' || role === 'staff' ?
               <div
@@ -101,7 +92,6 @@ const Admin = () => {
                 <FaClipboardList size={20} />
                 {!isSidebarCollapsed && <span>Quản lý đơn hàng</span>}
               </div>
-
               :
               ''
           }
@@ -212,7 +202,6 @@ const Admin = () => {
           )}
           <h1>
             {activeTab === 'dashboard' && 'Tổng quan'}
-            {activeTab === 'qrcode' && 'Mã QR đặt món'}
             {activeTab === 'orders' && 'Quản lý đơn hàng'}
             {activeTab === 'menu' && 'Quản lý thực đơn'}
             {activeTab === 'stats' && 'Thống kê'}
@@ -221,14 +210,12 @@ const Admin = () => {
             {activeTab === 'payment' && 'Quản Lý Thanh toán'}
           </h1>
           <div className="admin-info">
-            <span className="admin-name">{role}:{name}</span>
+            <span className="admin-name">{role}: {name}</span>
           </div>
         </div>
 
         <div className="content-body">
-
-          {activeTab === 'qrcode' && <QrCodeGenerator />}
-          {activeTab === 'dashboard' && <div className="placeholder-content">Tính năng đang phát triển</div>}
+          {activeTab === 'dashboard' && <div className="placeholder-content">Chào mừng bạn đến với trang quản lý</div>}
           {activeTab === 'orders' && <div><OrderManagement /></div>}
           {activeTab === 'cate' && <div><Category /></div>}
           {activeTab === 'menu' && <div><Menu /></div>}

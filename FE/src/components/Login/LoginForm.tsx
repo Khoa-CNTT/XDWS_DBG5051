@@ -35,17 +35,11 @@ const loginForm = () => {
                 const userInfo = await getUserInfo();
                 console.log('Thông tin người dùng:', userInfo);
 
-                // Lưu role vào localStorage
+                // Lưu role và name vào localStorage
                 localStorage.setItem('role', userInfo.role);
+                localStorage.setItem('name', userInfo.name || 'User');
 
-                // Kiểm tra role và điều hướng
-                // if (userInfo.role === 'admin') {
                 navigate('/admin');
-                // } else if (userInfo.role === 'staff') {
-                // navigate('/staff');
-                // } else {
-                //     setError('Không có quyền truy cập');
-                // }
             } catch (error) {
                 console.error('Lỗi khi lấy thông tin người dùng:', error);
                 setError('Không thể lấy thông tin người dùng');
