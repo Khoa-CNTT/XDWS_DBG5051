@@ -50,7 +50,6 @@ class BookingController extends Controller
         ]);
         // Cập nhật dữ liệu từ request
         $booking->update($data);
-
         // Nếu có thay đổi status thì xử lý gửi thông báo
         if ($request->has('status')) {
             $status = $request->input('status');
@@ -64,7 +63,7 @@ class BookingController extends Controller
             if ($status === 'cancelled') {
                 // Gửi thông báo huỷ đặt bàn
                 Notification::route('mail', $booking->email)
-                    ->notify(new \App\Notifications\BookingCancelled($booking)); // anh cần tạo thêm notification này nếu chưa có
+                    ->notify(new \App\Notifications\BookingCancelled($booking)); 
             }
         }
 

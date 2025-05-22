@@ -87,7 +87,9 @@ class TableController extends Controller
                 'message' => 'Bàn không tồn tại'
             ], 404);
         }
-
+        if ($request->has('table_number')) {
+            $table->table_number = strtoupper($request->table_number);
+        }
         // Kiểm tra giá trị status hợp lệ (nếu cần)
         $validStatuses = ['available', 'occupied', 'reserved'];
         if (!in_array($request->status, $validStatuses)) {
@@ -95,7 +97,7 @@ class TableController extends Controller
                 'message' => 'Trạng thái không hợp lệ'
             ], 400);
         }
-        
+
 
         // Cập nhật status
         $table->status = $request->status;

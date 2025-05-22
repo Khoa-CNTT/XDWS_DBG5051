@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\MenuController;
+use App\Http\Controllers\API\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,3 +23,5 @@ Route::prefix('cart')->group(function () {
     Route::post('/down', [CartController::class, 'downQtyCart']);
     Route::post('/delete', [CartController::class, 'deleteQtyCart']);
 });
+//đặt món
+Route::post('/orders/place', [OrderController::class, 'placeOrder']);

@@ -3,7 +3,7 @@ import { api } from '../Api/AxiosIntance';
 
 // Tạo instance axios riêng cho các route web (không phải api)
 const webApi = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: 'http://192.168.1.191:8000',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ export interface CartItem {
 }
 
 export interface OrderRequest {
-  number_table: number;
+  table_number: number;
   items: {
     menu_id: number;
     quantity: number;
@@ -102,7 +102,7 @@ class QrOrderService {
   }
 
   // Đặt món với dữ liệu giỏ hàng
-  async placeOrder(orderData: { number_table: number }) {
+  async placeOrder(orderData: { table_number: number }) {
     const response = await webApi.post('/orders/place', orderData);
     return response.data;
   }

@@ -90,12 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Các API khác cần đăng nhập mới được dùng
         Route::post('/logout', [AuthController::class, 'logout']);
 
-        //Thanh toán
-        Route::post('/staff/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
-        //phản hồi VNpay
-        Route::get('/staff/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
-        //phản hồi cash, card
-        Route::post('/staff/internal_payment', [CheckoutController::class, 'internal_payment']);
+
     });
 });
 
@@ -113,8 +108,7 @@ Route::get('/order', [OrderController::class, 'index']);
 
 // Đơn hàng chi tiết
 Route::get('/order-item/{id}', [OrderController::class, 'show']);
-//đặt món
-Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+
 
 //AI gợi ý món ăn
 Route::get('/popular-dishes', [MenuController::class, 'getPopularMenus']);
@@ -130,3 +124,9 @@ Route::post('/chatbox', [ChatbotController::class, 'ask']);
 Route::get('/rating/form/{order_id}', [RateController::class, 'getFoodByOrder']);
 Route::post('/rating/submit', [RateController::class, 'submitRating']);
 
+//Thanh toán
+Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
+//phản hồi VNpay
+Route::get('/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');
+//phản hồi cash, card
+Route::post('/internal_payment', [CheckoutController::class, 'internal_payment']);

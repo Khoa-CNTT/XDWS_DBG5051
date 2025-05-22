@@ -38,10 +38,11 @@ class BookingConfirmed extends Notification
     {
         return (new MailMessage)
             ->subject('Xác nhận đặt bàn thành công!')
-            ->greeting('Xin chào' . $this->booking->customer_name)
+            ->greeting('Xin chào ' . $this->booking->customer_name)
             ->line('Đơn đặt bàn của bạn vào lúc ' . $this->booking->booking_time . ' ngày ' . $this->booking->booking_date . " đã được xác nhận.")
             ->line('Chúng tôi rất mong được đón tiếp bạn.')
-            ->line('Cảm ơn bạn đã đặt bàn!');
+            ->line('Cảm ơn bạn đã đặt bàn!')
+            ->salutation('Trân trọng, ' . config('app.name'));
     }
 
     /**

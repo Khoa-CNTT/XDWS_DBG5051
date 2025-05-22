@@ -226,7 +226,7 @@ const QrOrdering = () => {
       
       // Tiến hành đặt món
       const orderData = {
-        number_table: table.id
+        table_number: table.id
       };
       
       const response = await qrOrderService.placeOrder(orderData);

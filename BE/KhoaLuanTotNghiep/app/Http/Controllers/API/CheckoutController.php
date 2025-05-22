@@ -93,7 +93,7 @@ class CheckoutController extends Controller
                 'method' => 'VNPay',
                 'status' => 'completed'
             ]);
-            // Tạo mã QR
+            //Tạo mã QR để đánh giá
             $qrCodeData = "http://192.168.1.191:5173/rate?order_id=" . $payment->order_id;
             $qrCode = QrCode::format('png')->size(300)->generate($qrCodeData);
             return response()->json([
@@ -123,7 +123,7 @@ class CheckoutController extends Controller
             'method' => $data['method'],
             'status' => 'completed'
         ]);
-        // Tạo mã QR
+        // Tạo mã QR để đánh giá
         $qrCodeData = "http://192.168.1.191:5173/rate?order_id=" . $payment->order_id;
         $qrCode = QrCode::format('png')->size(300)->generate($qrCodeData);
         return response()->json([

@@ -20,7 +20,7 @@ export const formatPrice = (price: number) => {
 export const getImageUrl = (image: string | null) => {
     if (!image) return '/vite.svg';
     if (image.startsWith('http')) return image;
-    return `http://localhost:8000/upload/menu/${image}`;
+    return `http://192.168.1.191:8000/upload/menu/${image}`;
 };
 
 const MenuManage = () => {

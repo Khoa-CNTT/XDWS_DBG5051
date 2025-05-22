@@ -10,5 +10,10 @@ class Payment extends Model
     use HasFactory;
     protected $table = 'payments';
 
-    protected $fillable = ['order_id', 'amount','method', 'status'];
+    protected $fillable = ['order_id','table_number', 'amount','method', 'status'];
+
+     public function table()
+    {
+        return $this->belongsTo(Table::class, 'table_number');
+    }
 }

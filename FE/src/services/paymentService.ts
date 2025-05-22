@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authHeader } from '../Api/Login';
 import { Order } from './orderService';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://192.168.1.191:8000/api';
 
 export interface Payment {
   id: number;
@@ -33,7 +33,7 @@ export const paymentService = {
   // Xử lý thanh toán tiền mặt
   processInternalPayment: async (paymentData: PaymentRequest): Promise<Payment> => {
     const response = await axios.post(
-      `${API_URL}/staff/internal_payment`, 
+      `${API_URL}/internal_payment`, 
       paymentData, 
       authHeader()
     );
@@ -43,7 +43,7 @@ export const paymentService = {
   // Xử lý thanh toán VNPay
   processVnPayPayment: async (paymentData: VNPayRequest): Promise<VNPayResponse> => {
     const response = await axios.post(
-      `${API_URL}/staff/vnpay_payment`, 
+      `${API_URL}/vnpay_payment`, 
       paymentData, 
       authHeader()
     );

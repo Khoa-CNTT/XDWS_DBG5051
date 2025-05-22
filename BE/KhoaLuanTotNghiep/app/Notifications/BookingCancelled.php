@@ -39,7 +39,8 @@ class BookingCancelled extends Notification
         ->subject('Thông báo huỷ đặt bàn')
         ->greeting('Xin chào ' . $this->booking->customer_name)
         ->line('Chúng tôi xin lỗi, đơn đặt bàn của bạn không thể được xác nhận.')
-        ->line('Vui lòng thử lại vào thời gian khác hoặc liên hệ trực tiếp.');
+        ->line('Vui lòng thử lại vào thời gian khác hoặc liên hệ trực tiếp.')
+        ->salutation('Trân trọng, ' . config('app.name'));
     }
 
     /**

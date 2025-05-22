@@ -50,6 +50,7 @@ class OrderController extends Controller
             'status' => 'pending',
         ]);
 
+
         foreach ($cart as $menuId => $item) {
             OrderItem::create([
                 'order_id' => $order->id,

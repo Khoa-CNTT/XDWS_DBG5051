@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { authHeader } from '../Api/Login';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://192.168.1.191:8000/api';
 
 export interface Table {
   id: string;

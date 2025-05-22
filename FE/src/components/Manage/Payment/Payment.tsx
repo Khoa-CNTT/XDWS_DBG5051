@@ -12,7 +12,7 @@ interface OrderWithPayment extends Order {
 }
 
 export const createPayment = async (amount: number) => {
-  const res = await fetch('http://localhost:8000/api/staff/vnpay_payment', {
+  const res = await fetch('http://192.168.1.191:8000/api/vnpay_payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount }),
