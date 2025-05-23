@@ -12,7 +12,7 @@ interface OrderWithPayment extends Order {
 }
 
 export const createPayment = async (amount: number) => {
-  const res = await fetch('http://192.168.1.191:8000/api/vnpay_payment', {
+  const res = await fetch('http://192.168.10.96:8000/api/vnpay_payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount }),
@@ -46,8 +46,8 @@ const PaymentManagement = () => {
         // Chuyển đổi từ Order sang OrderWithPayment
         const ordersWithPayment: OrderWithPayment[] = response.map(order => ({
           ...order,
-          payment_status: order.status === 'delivered' ? 'paid' : 'unpaid',
-          payment_method: order.status === 'delivered' ? 'cash' : undefined
+          payment_status: order.status === 'completed' ? 'paid' : 'unpaid',
+          payment_method: order.status === 'completed' ? 'cash' : undefined
         }));
         
         setOrders(ordersWithPayment);
@@ -122,7 +122,7 @@ const PaymentManagement = () => {
               payment_method: 'cash' as const,
               amount_received: amountReceived,
               amount_returned: amountReceived - order.total_price,
-              status: 'delivered'
+              status: 'completed'
             };
           }
           return order;
@@ -175,7 +175,7 @@ const PaymentManagement = () => {
               ...order,
               payment_status: 'paid' as const,
               payment_method: 'VNPay' as const,
-              status: 'delivered'
+              status: 'completed'
             };
           }
           return order;

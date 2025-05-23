@@ -20,7 +20,7 @@ export const formatPrice = (price: number) => {
 export const getImageUrl = (image: string | null) => {
     if (!image) return '/vite.svg';
     if (image.startsWith('http')) return image;
-    return `http://192.168.1.191:8000/upload/menu/${image}`;
+    return `http://192.168.10.96:8000/upload/menu/${image}`;
 };
 
 const MenuManage = () => {
@@ -81,12 +81,12 @@ const MenuManage = () => {
 
             if (initMenus) {
                 form.append('_method', 'PUT');
-                const res = await axios.post(`http://localhost:8000/api/admin/update-menu/${initMenus.id}`, form,
+                const res = await axios.post(`http://192.168.10.96:8000/api/admin/update-menu/${initMenus.id}`, form,
                     authHeader()
                 );
                 console.log('Cập nhật món ăn thành công:', res.data);
             } else {
-                const res = await axios.post(`http://localhost:8000/api/admin/add-menu`, form, authHeader());
+                const res = await axios.post(`http://192.168.10.96:8000/api/admin/add-menu`, form, authHeader());
                 console.log('Thêm món ăn thành công:', res.data.data);
             }
 
@@ -101,7 +101,7 @@ const MenuManage = () => {
     const handleDelete = (menuselect: FoodItem) => {
         const confirmDelete = window.confirm(` Bạn muốn xóa ${menuselect.name}`)
         if (confirmDelete) {
-            axios.delete(`http://localhost:8000/api/admin/cate/${menuselect.id}`, authHeader())
+            axios.delete(`http://192.168.10.96:8000/api/admin/cate/${menuselect.id}`, authHeader())
             const updatedmenus = menus.filter((food) => food.id !== menuselect.id)
             console.log('Xóa món ăn thành công:', menuselect.name);
 

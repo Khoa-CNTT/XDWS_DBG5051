@@ -77,6 +77,9 @@ Route::middleware('auth:sanctum')->group(function () {
         //câp nhật đơn đặt bàn
         Route::put('/admin/update-booking/{id}', [BookingController::class, 'update']);
 
+        //Đơn hàng
+        //Update
+        Route::put('/admin/update-order/{id}', [OrderController::class, 'update']);
         //Thống kê        
         Route::get('/admin/dashboard', [ReportController::class, 'getChartData']);
 
@@ -125,6 +128,9 @@ Route::get('/rating/form/{order_id}', [RateController::class, 'getFoodByOrder'])
 Route::post('/rating/submit', [RateController::class, 'submitRating']);
 
 //Thanh toán
+//list
+Route::get('/payment', [CheckoutController::class, 'getOrdersGroupedByTable']);
+//vnpay
 Route::post('/vnpay_payment', [CheckoutController::class, 'vnpay_payment']);
 //phản hồi VNpay
 Route::get('/vnpay_callback', [CheckoutController::class, 'vnpay_callback'])->name('vnpay.callback');

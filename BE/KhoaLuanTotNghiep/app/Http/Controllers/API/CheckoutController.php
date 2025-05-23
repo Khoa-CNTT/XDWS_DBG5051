@@ -3,13 +3,26 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CheckoutController extends Controller
 {
-    // 1. Gửi yêu cầu thanh toán qua VNPAY
+    public function getOrdersGroupedByTable()
+    {
+        $orders = Order::where('status', 'pending')  // điều kiện lấy đơn chưa thanh toán
+            ->select('table_number')
+            ->selectRaw('SUM(total_price) as total_amount')
+            ->groupBy('table_number')
+            ->get();
+
+        return response()->json([
+            'data' => $orders
+        ]);
+    }
+    // Gửi yêu cầu thanh toán qua VNPAY
     public function vnpay_payment(Request $request)
     {
         $data = $request->validate([
@@ -18,8 +31,8 @@ class CheckoutController extends Controller
         ]);
 
         $code_cart = rand(1000, 9999);
-        $vnp_TmnCode = "1VYBIYQP";
-        $vnp_HashSecret = "NOH6MBGNLQL9O9OMMFMZ2AX8NIEP50W1";
+        $vnp_TmnCode = "D3AXQ5I2";
+        $vnp_HashSecret = "T00N1I46MWFOLHQF5Z09YXS8VA9WGMO0";
         $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
         $vnp_Returnurl = route('vnpay.callback'); // phải định nghĩa route này
 
@@ -46,18 +59,17 @@ class CheckoutController extends Controller
         ];
 
         ksort($inputData);
-        $query = '';
+        $query = http_build_query($inputData);
         $hashdata = '';
         $i = 0;
-
         foreach ($inputData as $key => $value) {
-            $query .= urlencode($key) . '=' . urlencode($value) . '&';
-            $hashdata .= ($i++ ? '&' : '') . urlencode($key) . '=' . urlencode($value);
+            $hashdata .= ($i++ ? '&' : '') . $key . '=' . $value;
         }
-
         $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-        $vnp_Url .= '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
 
+        $vnp_Url .= '?' . $query;
+        $vnp_Url .= '&vnp_SecureHashType=SHA512';
+        $vnp_Url .= '&vnp_SecureHash=' . $vnpSecureHash;
         return response()->json([
             'code' => '00',
             'message' => 'success',
@@ -93,6 +105,12 @@ class CheckoutController extends Controller
                 'method' => 'VNPay',
                 'status' => 'completed'
             ]);
+            // Cập nhật trạng thái đơn hàng
+            $order = Order::find($payment->order_id);
+            if ($order) {
+                $order->status = 'completed'; // hoặc 'paid' tuỳ theo logic của bạn
+                $order->save();
+            }
             //Tạo mã QR để đánh giá
             $qrCodeData = "http://192.168.1.191:5173/rate?order_id=" . $payment->order_id;
             $qrCode = QrCode::format('png')->size(300)->generate($qrCodeData);
@@ -114,15 +132,22 @@ class CheckoutController extends Controller
         $data = $request->validate([
             'order_id' => 'required|integer',
             'amount' => 'required|numeric',
-            'method' => 'required|in:cash,card'
+            'method' => 'required|in:cash,card',
         ]);
 
         $payment = Payment::create([
             'order_id' => $data['order_id'],
             'amount' => $data['amount'],
             'method' => $data['method'],
-            'status' => 'completed'
+            'status' => 'completed',
+
         ]);
+        // Cập nhật trạng thái đơn hàng
+        $order = Order::find($payment->order_id);
+        if ($order) {
+            $order->status = 'completed';
+            $order->save();
+        }
         // Tạo mã QR để đánh giá
         $qrCodeData = "http://192.168.1.191:5173/rate?order_id=" . $payment->order_id;
         $qrCode = QrCode::format('png')->size(300)->generate($qrCodeData);

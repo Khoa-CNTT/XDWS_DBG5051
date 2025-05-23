@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authHeader } from '../Api/Login';
 import { Order } from './orderService';
 
-const API_URL = 'http://192.168.1.191:8000/api';
+const API_URL = 'http://192.168.10.96:8000/api';
 
 export interface Payment {
   id: number;

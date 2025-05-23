@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.191:8000/api';
+const API_URL = 'http://192.168.10.96:8000/api';
 
 export interface OrderItem {
   id: number;
@@ -18,11 +18,10 @@ export interface Order {
   id: number;
   table_id: number;
   total_price: number;
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'completed' | 'cancelled';
   items: OrderItem[];
   table: {
     id: number;
-    name: string;
     table_number?: string;
   };
   created_at: string;
@@ -44,7 +43,7 @@ export const orderService = {
 
   // Cập nhật trạng thái đơn hàng
   updateOrderStatus: async (id: number, status: Order['status']): Promise<Order> => {
-    const response = await axios.put(`${API_URL}/staff/order-item/${id}`, { status });
+    const response = await axios.put(`${API_URL}/order-item/${id}`, { status });
     return response.data;
   }
 }; 

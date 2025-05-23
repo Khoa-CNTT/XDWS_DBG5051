@@ -79,7 +79,7 @@ const QrOrdering = () => {
         // Kiểm tra trạng thái bàn trước
         const tableStatus = await qrOrderService.checkTableStatus(tableNumber);
         
-        if (tableStatus.status !== 'available') {
+        if (tableStatus.status !== 'occupied') {
           showToastMessage(`Bàn ${tableNumber} không khả dụng. Vui lòng chọn bàn khác.`);
           return;
         }
@@ -226,7 +226,7 @@ const QrOrdering = () => {
       
       // Tiến hành đặt món
       const orderData = {
-        table_number: table.id
+        table_id: table.id
       };
       
       const response = await qrOrderService.placeOrder(orderData);

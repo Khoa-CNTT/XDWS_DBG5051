@@ -14,6 +14,6 @@ class Payment extends Model
 
      public function table()
     {
-        return $this->belongsTo(Table::class, 'table_number');
+        return $this->belongsTo(Table::class, 'table_number', 'table_number');
     }
 }

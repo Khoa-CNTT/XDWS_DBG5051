@@ -4,7 +4,7 @@ import './Order.scss';
 import { orderService, Order as OrderType } from '../../../services/orderService';
 import LoadingSpinner from '../../Loading/LoadingSpinner';
 
-type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+type OrderStatus = 'pending' | 'completed' | 'cancelled';
 
 interface OrderFilter {
   status: OrderStatus | 'all';
@@ -166,9 +166,7 @@ const OrderManagement = () => {
   const getStatusText = (status: OrderStatus) => {
     const statusMap: Record<OrderStatus, string> = {
       'pending': 'Chờ duyệt',
-      'preparing': 'Đang chuẩn bị',
-      'ready': 'Sẵn sàng phục vụ',
-      'delivered': 'Đã phục vụ',
+      'completed': 'Sẵn sàng phục vụ',
       'cancelled': 'Đã hủy'
     };
     return statusMap[status];
@@ -177,9 +175,7 @@ const OrderManagement = () => {
   const getStatusClass = (status: OrderStatus) => {
     const statusClassMap: Record<OrderStatus, string> = {
       'pending': 'pending',
-      'preparing': 'preparing',
-      'ready': 'ready',
-      'delivered': 'delivered',
+      'completed': 'completed',
       'cancelled': 'cancelled'
     };
     return statusClassMap[status];
@@ -216,9 +212,7 @@ const OrderManagement = () => {
             >
               <option value="all">Tất cả</option>
               <option value="pending">Chờ duyệt</option>
-              <option value="preparing">Đang chuẩn bị</option>
-              <option value="ready">Sẵn sàng phục vụ</option>
-              <option value="delivered">Đã phục vụ</option>
+              <option value="completed">Sẵn sàng phục vụ</option>
               <option value="cancelled">Đã hủy</option>
             </select>
           </div>
@@ -277,9 +271,7 @@ const OrderManagement = () => {
                     )}
                   >
                     <option value="pending">Chờ duyệt</option>
-                    <option value="preparing">Đang chuẩn bị</option>
-                    <option value="ready">Sẵn sàng phục vụ</option>
-                    <option value="delivered">Đã phục vụ</option>
+                    <option value="completed">Sẵn sàng phục vụ</option>
                     <option value="cancelled">Đã hủy</option>
                   </select>
                 </div>

@@ -45,7 +45,7 @@ class OrderController extends Controller
         }
 
         $order = Order::create([
-            'table_number' => $request->table_number,
+            'table_id' => $request->table_id,
             'total_price' => $totalPrice,
             'status' => 'pending',
         ]);
@@ -100,7 +100,23 @@ class OrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'status' => 'required|in:pending,completed,cancelled' // tùy trạng thái hệ thống
+        ]);
+
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
+        }
+
+        $order->status = $request->input('status');
+        $order->save();
+
+        return response()->json([
+            'message' => 'Cập nhật trạng thái đơn hàng thành công',
+            'data' => $order
+        ]);
     }
 
     /**
