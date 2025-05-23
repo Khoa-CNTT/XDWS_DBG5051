@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { authHeader } from '../Api/Login';
-
-const API_URL = 'http://192.168.10.96:8000/api';
+import { api } from '../Api/AxiosIntance';
 
 export interface Table {
   id: string;
@@ -18,14 +17,14 @@ export interface TableRequest {
 export const tableService = {
   // Get all tables
   getAllTables: async (): Promise<Table[]> => {
-    const response = await axios.get(`${API_URL}/table`, authHeader());
+    const response = await api.get(`/table`, authHeader());
     return response.data.data;
   },
   
   // Get table by ID
   getTableById: async (id: string): Promise<Table> => {
     // Using the show method from your PHP controller
-    const response = await axios.get(`${API_URL}/table/${id}`, authHeader());
+    const response = await api.get(`/table/${id}`, authHeader());
     return response.data.data;
   },
   
@@ -52,7 +51,7 @@ export const tableService = {
       }
 
       // Gửi dữ liệu với cấu trúc mới
-      const response = await axios.post(`${API_URL}/admin/add-table`, payload,authHeader());
+      const response = await api.post(`/admin/add-table`, payload,authHeader());
       
       if (!response.data || !response.data.data) {
         throw new Error('Dữ liệu trả về không hợp lệ');
@@ -93,7 +92,7 @@ export const tableService = {
     };
     
     console.log("Updating table with payload:", payload);
-    const response = await axios.put(`${API_URL}/admin/update-table/${id}`, payload, authHeader());
+    const response = await api.put(`/admin/update-table/${id}`, payload, authHeader());
     return response.data.data;
   },
   
@@ -101,7 +100,7 @@ export const tableService = {
   updateTableStatus: async (id: string, newStatus: string): Promise<Table> => {
     const payload = { status: newStatus }; 
     try {
-        const response = await axios.put(`${API_URL}/admin/update-table/${id}`, payload, authHeader());
+        const response = await api.put(`/admin/update-table/${id}`, payload, authHeader());
         return response.data.data;
     } catch (error) {
         console.error('Error updating table status:', error);
@@ -111,6 +110,6 @@ export const tableService = {
 
   // Delete table
   deleteTable: async (id: string): Promise<void> => {
-    await axios.delete(`${API_URL}/admin/table/${id}`, authHeader());
+    await api.delete(`/admin/table/${id}`, authHeader());
   }
 };

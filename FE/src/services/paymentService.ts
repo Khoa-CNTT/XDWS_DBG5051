@@ -1,6 +1,5 @@
-import axios from 'axios';
 import { authHeader } from '../Api/Login';
-import { Order } from './orderService';
+import { api } from '../Api/AxiosIntance';
 
 const API_URL = 'http://192.168.10.96:8000/api';
 
@@ -29,21 +28,37 @@ export interface VNPayResponse {
   payment_url: string;
 }
 
+export interface PaymentResponse extends Payment {
+  review_url?: string;
+  qr_code_base64?: string;
+}
+
 export const paymentService = {
   // Xử lý thanh toán tiền mặt
-  processInternalPayment: async (paymentData: PaymentRequest): Promise<Payment> => {
-    const response = await axios.post(
-      `${API_URL}/internal_payment`, 
+  processInternalPayment: async (paymentData: PaymentRequest): Promise<PaymentResponse> => {
+    const response = await api.post(
+      `/internal_payment`, 
       paymentData, 
       authHeader()
     );
-    return response.data.data;
+    
+    // Kiểm tra và xử lý dữ liệu trả về
+    const responseData = response.data;
+    
+    // Log để debug
+    console.log('Payment API response:', responseData);
+    
+    return {
+      ...responseData.data,
+      review_url: responseData.review_url || '',
+      qr_code_base64: responseData.qr_code_base64 || ''
+    };
   },
   
   // Xử lý thanh toán VNPay
   processVnPayPayment: async (paymentData: VNPayRequest): Promise<VNPayResponse> => {
-    const response = await axios.post(
-      `${API_URL}/vnpay_payment`, 
+    const response = await api.post(
+      `/vnpay_payment`, 
       paymentData, 
       authHeader()
     );

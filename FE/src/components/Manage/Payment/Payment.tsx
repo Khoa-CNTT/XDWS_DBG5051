@@ -35,6 +35,8 @@ const PaymentManagement = () => {
   const [historySearchTerm, setHistorySearchTerm] = useState<string>('');
   const [vnpayUrl, setVnpayUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [ratingQrCode, setRatingQrCode] = useState<string>('');
+  const [ratingUrl, setRatingUrl] = useState<string>('');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -106,11 +108,30 @@ const PaymentManagement = () => {
     
     try {
       // Gọi API thanh toán
-      await paymentService.processInternalPayment({
+      const paymentResponse = await paymentService.processInternalPayment({
         order_id: selectedOrder.id,
         amount: selectedOrder.total_price,
         method: 'cash'
       });
+      
+      // Lưu URL đánh giá từ backend
+      if (paymentResponse.review_url) {
+        setRatingUrl(paymentResponse.review_url);
+      }
+      
+      // Kiểm tra và xử lý dữ liệu QR code
+      if (paymentResponse.qr_code_base64) {
+        // Kiểm tra xem qr_code_base64 có phải là chuỗi không
+        if (typeof paymentResponse.qr_code_base64 === 'string') {
+          setRatingQrCode(`data:image/png;base64,${paymentResponse.qr_code_base64}`);
+        } else {
+          console.error('QR code không phải là chuỗi:', paymentResponse.qr_code_base64);
+          // Nếu không phải chuỗi, sử dụng URL đánh giá để tạo QR code
+          if (paymentResponse.review_url) {
+            setRatingQrCode('');  // Xóa giá trị hiện tại để sử dụng URL thay thế
+          }
+        }
+      }
       
       // Cập nhật state
       setOrders(prevOrders => 
@@ -167,7 +188,34 @@ const PaymentManagement = () => {
     
     try {
       // Trong ứng dụng thực tế, việc này sẽ được xử lý bởi URL callback
-      // Ở đây chúng ta chỉ cập nhật trạng thái UI
+      // Ở đây chúng ta giả định rằng thanh toán đã thành công và backend đã trả về mã QR
+      
+      // Gọi API thanh toán nội bộ để cập nhật trạng thái và lấy mã QR
+      const paymentResponse = await paymentService.processInternalPayment({
+        order_id: selectedOrder.id,
+        amount: selectedOrder.total_price,
+        method: 'VNPay'
+      });
+      
+      // Lưu URL đánh giá từ backend
+      if (paymentResponse.review_url) {
+        setRatingUrl(paymentResponse.review_url);
+      }
+      
+      // Kiểm tra và xử lý dữ liệu QR code
+      if (paymentResponse.qr_code_base64) {
+        // Kiểm tra xem qr_code_base64 có phải là chuỗi không
+        if (typeof paymentResponse.qr_code_base64 === 'string') {
+          setRatingQrCode(`data:image/png;base64,${paymentResponse.qr_code_base64}`);
+        } else {
+          console.error('QR code không phải là chuỗi:', paymentResponse.qr_code_base64);
+          // Nếu không phải chuỗi, sử dụng URL đánh giá để tạo QR code
+          if (paymentResponse.review_url) {
+            setRatingQrCode('');  // Xóa giá trị hiện tại để sử dụng URL thay thế
+          }
+        }
+      }
+      
       setOrders(prevOrders => 
         prevOrders.map(order => {
           if (order.id === selectedOrder.id) {
@@ -380,6 +428,41 @@ const PaymentManagement = () => {
                     <button className="print-btn" onClick={handlePrintReceipt}>
                       <FaPrint /> In hóa đơn
                     </button>
+                  )}
+
+                  {paymentCompleted && (ratingQrCode || ratingUrl) && (
+                    <div className="qr-rating-section">
+                      <h4>Mã QR đánh giá món ăn</h4>
+                      <p>Quét mã QR để đánh giá món ăn:</p>
+                      
+                      <div className="qr-code">
+                        {ratingQrCode ? (
+                          <img src={ratingQrCode} alt="QR Code đánh giá" />
+                        ) : ratingUrl ? (
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ratingUrl)}`} 
+                            alt="QR Code đánh giá" 
+                          />
+                        ) : null}
+                      </div>
+                      
+                      {ratingUrl && (
+                        <div className="rating-url">
+                          <p>Hoặc truy cập đường dẫn:</p>
+                          <a href={ratingUrl} target="_blank" rel="noopener noreferrer">
+                            {ratingUrl}
+                          </a>
+                        </div>
+                      )}
+                      
+                      <p className="rating-note">
+                        Vui lòng chia sẻ mã QR này với khách hàng để họ đánh giá món ăn.
+                      </p>
+                      
+                      <button className="print-qr-btn" onClick={() => window.print()}>
+                        <FaPrint /> In mã QR
+                      </button>
+                    </div>
                   )}
                 </div>
               ) : showQRCode ? (

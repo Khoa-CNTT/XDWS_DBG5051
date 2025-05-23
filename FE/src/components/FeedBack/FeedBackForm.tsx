@@ -1,98 +1,88 @@
 import React, { useState } from 'react';
-// import Rating from 'react-rating-stars-component';
+import styles from './FeedBackForm.module.scss';
+import { Fa1 } from 'react-icons/fa6';
 import { FaStar } from 'react-icons/fa';
-import './FeedBackForm.scss';
-import Evaluate from '../Evaluate/Evaluate';
-import TextOnlyInput from '../UI/TextOnlyInput';
-const FeedbackForm: React.FC = () => {
-    const [overallRating, setOverallRating] = useState(0);
-    const [foodComment, setFoodComment] = useState('');
-    const [serviceComment, setServiceComment] = useState('');
-    const [staffRating, setStaffRating] = useState(0);
-    const [submitted, setSubmitted] = useState(false);
+import { useSearchParams } from 'react-router-dom';
+import {api}  from '../../Api/AxiosIntance';
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+const Evaluate: React.FC = () => {
+    const [rating, setRating] = useState(0);
+    const [hover, setHover] = useState<number | null>(null);
+    const [comment, setComment] = useState('');
+    const [searchParams] = useSearchParams();
+    const orderId = searchParams.get('order_id');
+    console.log(orderId);
+    
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const feedbackData = {
-            overallRating,
-            foodComment,
-            serviceComment,
-            staffRating,
-        };
-        console.log('Feedback:', feedbackData);
-        // TODO: Gửi dữ liệu về server tại đây
-        setSubmitted(true);
+        if (rating === 0) {
+            alert('Vui lòng chọn số sao để đánh giá!');
+            return;
+        }
+    
+        try {
+            await api.post('/rating/submit', {
+                order_id: Number(orderId),
+                ratings: [
+                    {
+                        rating,
+                        comment
+                    }
+                ]
+            });
+            
+    
+            alert('Gửi đánh giá thành công!');
+            setRating(0);
+            setComment('');
+        } catch (error) {
+            console.log('Gửi đánh giá thất bại:', error);
+            console.log(rating, comment, orderId);
+            alert('Gửi đánh giá thất bại!');
+        }
     };
+    
 
     return (
-        <div className="feedback-form">
-            {submitted ? (
-                <div className="thank-you">
-                    <h2>Cảm ơn bạn đã đánh giá!</h2>
-                    <p>Chúng tôi trân trọng mọi phản hồi để nâng cao dịch vụ.</p>
-                </div>
-            ) : (
-                <>
-                    <h2>Đánh giá trải nghiệm của bạn</h2>
-                    <form
-                    // onSubmit={handleSubmit}
+        <form onSubmit={handleSubmit} className={styles.ratingForm}>
+            <h2 className={styles.title}>
+                <span className={styles.star}>
+                    <FaStar />
+                </span>
+                Đánh giá món ăn
+            </h2>
+
+            <div className={styles.stars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                        key={star}
+                        className={
+                            (hover ?? rating) >= star ? styles.activeStar : styles.starItem
+                        }
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHover(star)}
+                        onMouseLeave={() => setHover(null)}
                     >
-                        <div className="rating">
-                            <label>Đánh giá tổng thể:</label>
-                            {/* <Rating
-                                count={5}
-                                value={overallRating}
-                                onChange={(rating) => setOverallRating(rating)}
-                                size={30}
-                                activeColor="#ffd700"
-                                emptyIcon={<FaStar />}
-                                filledIcon={<FaStar />}
-                            /> */}
-                            {/* <Evaluate onSubmit={e => handleSubmit}></Evaluate> */}
-                        </div>
+                        <FaStar />
+                    </span>
+                ))}
+            </div>
 
-                        <div>
-                            <label>Nhận xét về món ăn:</label>
-                            <TextOnlyInput
-                                // rows={3}
-                                value={foodComment}
-                                onChange={setServiceComment}
-                            // onChange={(e) => setFoodComment(e.target.value)}
-                            // required
-                            />
-                        </div>
+            <textarea
+                className={styles.textarea}
+                placeholder="Viết nhận xét của bạn..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+            />
 
-                        <div>
-                            <label>Nhận xét về dịch vụ:</label>
-                            <textarea
-                                rows={3}
-                                value={serviceComment}
-                                onChange={(e) => setServiceComment(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="rating">
-                            <label>Thái độ phục vụ của nhân viên:</label>
-                            {/* <Rating
-                                count={5}
-                                value={staffRating}
-                                onChange={(rating) => setStaffRating(rating)}
-                                size={30}
-                                activeColor="#ffd700"
-                                emptyIcon={<FaStar />}
-                                filledIcon={<FaStar />}
-                            /> */}
-                        </div>
-
-                        <button type="submit" className="submit-btn">
-                            Gửi đánh giá
-                        </button>
-                    </form>
-                </>
-            )}
-        </div>
+            <button type="submit" className={styles.submitButton}>
+                Gửi đánh giá
+            </button>
+        </form>
     );
 };
 
-export default FeedbackForm;
+export default Evaluate;

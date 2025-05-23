@@ -40,7 +40,7 @@ function App() {
           } />
 
           <Route path="/list-menu" element={<QrOrdering />} />
-          <Route path="/feedback" element={<FeedbackForm />} />
+          <Route path="/rate/" element={<FeedbackForm />} />
           <Route
             path="*"
             element={

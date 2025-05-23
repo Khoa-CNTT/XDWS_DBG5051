@@ -1,7 +1,5 @@
-import axios from 'axios';
 import { authHeader } from '../Api/Login';
-
-const API_URL = 'http://192.168.10.96:8000/api';
+import { api } from '../Api/AxiosIntance'
 
 export interface Booking {
   id: string;
@@ -33,13 +31,13 @@ export interface BookingRequest {
 export const bookingService = {
   // Get all bookings
   getAllBookings: async (): Promise<Booking[]> => {
-    const response = await axios.get(`${API_URL}/admin/list-booking`, authHeader());
+    const response = await api.get(`/admin/list-booking`, authHeader());
     return response.data.data;
   },
 
   // Create new booking
   createBooking: async (bookingData: BookingRequest): Promise<Booking> => {
-    const response = await axios.post(`${API_URL}/booking`, bookingData, authHeader());
+    const response = await api.post(`/booking`, bookingData, authHeader());
     return response.data.data;
   },
 
@@ -49,7 +47,7 @@ export const bookingService = {
     if (tableId && status === 'confirmed') {
       Object.assign(payload, { tableId });
     }
-    const response = await axios.put(`${API_URL}/admin/update-booking/${id}`, payload, authHeader());
+    const response = await api.put(`/admin/update-booking/${id}`, payload, authHeader());
     return response.data.data;
   }
 }; 
